@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+  <script type="text/javascript" src="https://www.cornify.com/js/cornify.js"></script>
+</head>
+<body>
+
+</body>
+<script>
+
+    // 获取数据原理 且要求每次进行判断 大小写敏感
+    // 队列  数组读取每次键入值，超出6个（code长度）就弹出第一个，
+    const code="sikara";
+    const input=[];
+  function check(event) {
+      input.push(event.key);
+      if (input.length>6){
+          input.splice(0,1);
+      }
+      if (input.join('').includes(code)){
+          console.log('BINGO!');
+          cornify_add();
+      }
+  }
+window.addEventListener('keyup',check);
+</script>
+</html>

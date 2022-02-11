@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Canvas</title>
+</head>
+<body>
+<canvas id="draw" width="800" height="800"></canvas>
+<script>
+  //canvas初始化
+  const canvas = document.querySelector('#draw');
+  canvas.width= window.innerWidth;
+  canvas.height= window.innerHeight;
+  let context = canvas.getContext('2d');
+  context.lineCap="round";
+  context.lineJoin="round";
+  context.lineWidth=30;
+
+  let idDraw =false;
+  let lastX =0;
+  let lastY =0;
+  let hue =0;
+  let width =true;
+
+  //划线函数都写在一块
+  function draw(event) {
+    if (!idDraw){return;}
+    context.strokeStyle=`hsl(${hue}, 100%, 50%)`;
+    context.beginPath();
+    context.moveTo(lastX,lastY);
+    context.lineTo(event.offsetX,event.offsetY);
+
+    //如果不记录该变量，这么监听事件，每一次的起点都是终点，画出来的效果就是一串串点
+    // context.moveTo(event.offsetX,event.offsetY);
+    // context.lineTo(event.offsetX,event.offsetY);
+    context.stroke();
+
+    // lastX =event.offsetX;
+    // lastY =event.offsetY;
+    // 模式匹配  每次滑动初始点都是终点，终即始  线条宽度低情况下画出来的效果就是一串串点
+    [lastX,lastY]=[event.offsetX,event.offsetY];
+    //颜色变化
+    if (hue>359)hue=0;
+    hue++;
+    //粗细变化
+    if (context.lineWidth>=100 || context.lineWidth<=1) width=!width;
+    width? context.lineWidth-- :context.lineWidth++;
+
+  }
+
+  // function drawend(event) {
+  //   idDraw=false;
+  //    lastX =event.offsetX;
+  //    lastY =event.offsetY;
+  // }
+
+  function drawstart(event) {
+    idDraw=true;
+    lastX =event.offsetX;
+    lastY =event.offsetY;
+  }
+
+
+  canvas.addEventListener('mousemove', draw);
+  // canvas.addEventListener('mouseup',drawend);
+  canvas.addEventListener('mouseup',() => idDraw=false);
+  canvas.addEventListener('mouseout',() => idDraw=false);
+  canvas.addEventListener('mousedown',drawstart);
+</script>
+
+<style>
+  html, body {
+    margin: 0;
+  }
+</style>
+
+</body>
+</html>

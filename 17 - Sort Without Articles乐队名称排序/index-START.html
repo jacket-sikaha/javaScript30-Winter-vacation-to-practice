@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sort Without Articles</title>
+</head>
+<body>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background:center no-repeat url("53.jpg") ;
+      background-size: cover;
+      display: flex;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    #bands {
+      list-style: inside square;
+      font-size: 20px;
+      background: white;
+      width: 500px;
+      margin: auto;
+      padding: 0;
+      box-shadow: 0 0 0 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    #bands li {
+      border-bottom: 1px solid #efefef;
+      padding: 20px;
+    }
+    
+    #bands li:last-child {
+      border-bottom: 0;
+    }
+
+    a {
+      color: #ffc600;
+      text-decoration: none;
+    }
+
+  </style>
+
+  <ul id="bands"></ul>
+
+<script>
+const bands = [
+        'The Plot in You',
+        'The Devil Wears Prada',
+        'Pierce the Veil',
+        'Norma Jean',
+        'The Bled',
+        'Say Anything',
+        'The Midway State',
+        'We Came as Romans',
+        'Counterparts',
+        'Oh, Sleeper',
+        'A Skylit Drive',
+        'Anywhere But Here',
+        'An Old Dog'
+];
+
+//include会包含 There这种情况 不合适
+// let result=bands.sort((a,b) =>{
+//   let [firstA,secondA]=a.split(' ');
+//   let [firstB,secondB]=b.split(' ');
+//   let judgeA=firstA.includes("The ")||firstA.includes("An ")||firstA.includes("A ");
+//   let judgeB=firstB.includes("The ")||firstB.includes("An ")||firstB.includes("A ");
+//   if (judgeA){
+//     if (judgeB){
+//       return secondA.toUpperCase()>secondB.toUpperCase()?1:-1;
+//     }else {
+//       return secondA.toUpperCase()>firstB.toUpperCase()?1:-1;
+//     }
+//   }else {
+//     if (judgeB){
+//       return firstA.toUpperCase()>secondB.toUpperCase()?1:-1;
+//     }else {
+//       return firstA.toUpperCase()>firstB.toUpperCase()?1:-1;
+//     }
+//   }
+// })
+
+
+// function filter(value) {
+//   let split = value.split(' ');
+//   split.forEach(ele =>{
+//     if (ele!=="The"&&ele!=="A"&&ele!=="An"){
+//       console.log(ele);return ele;}
+//   })
+// }
+
+function filter(value) {
+  return value.replace(/^(a |the |an )/i, '');
+}
+
+let result=bands.sort((a,b) =>{
+  return filter(a) > filter(b)?1:-1;
+})
+console.log(result);
+
+let bankList = document.querySelector('#bands');
+
+bankList.innerHTML=result.map(person => {
+    return `<li>${person}</li>`;
+}).join('');
+</script>
+
+</body>
+</html>

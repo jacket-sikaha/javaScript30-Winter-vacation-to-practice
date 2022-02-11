@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JS + CSS Clock</title>
+</head>
+<body>
+
+
+    <div class="clock">
+      <h2></h2>
+      <div class="clock-face">
+        <div class="hand hour-hand"></div>
+        <div class="hand min-hand"></div>
+        <div class="hand second-hand"></div>
+      </div>
+    </div>
+
+
+  <style>
+    html {
+      background:url('52.jpg');
+      background-size: cover;
+      font-family: 'helvetica neue';
+      text-align: center;
+      font-size: 10px;
+    }
+
+    body {
+      margin: 0;
+      font-size: 2rem;
+      display: flex;
+      flex: 1;
+      min-height: 100vh;
+      align-items: center;
+    }
+
+    .clock {
+      width: 30rem;
+      height: 30rem;
+      border: 20px solid white;
+      border-radius: 50%;
+      margin: 50px auto;
+      position: relative;
+      padding: 2rem;
+      box-shadow:
+        0 0 0 4px rgba(0,0,0,0.1),
+        inset 0 0 0 3px #EFEFEF,
+        inset 0 0 10px black,
+        0 0 10px rgba(0,0,0,0.2);
+    }
+
+    h2{
+      position: absolute;
+      color: white;
+      top: 100%;
+    }
+    .clock-face {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform: translateY(-3px); /* account for the height of the clock hands */
+    }
+
+    /*同一个class优先级问题，（同于同一属性）后写的先覆盖*/
+    .hand {
+      width: 50%;
+      height: 6px;
+      background: deepskyblue;
+      position: absolute;
+      top: 50%;
+      /*修改模型偏移位置重心 第一个参数默认左右，第二个默认上下*/
+      transform-origin: 100%;
+      /*模型偏转角度*/
+      transform:rotate(90deg);
+      /*动画名  动画耗时  播放速度（指针机械运动的卡顿感）*/
+      transition: all 0.1s cubic-bezier(1, 0.96, 0.82, 0.76)
+    }
+
+    .hour-hand{
+      background-color: #ff7878;
+      /*模型大小形状变换*/
+      transform:scale(0.6,1.2);
+    }
+
+    .min-hand{
+      background-color: #adff7e;
+      transform:scale(0.9,0.9);
+    }
+
+    .second-hand{
+      transform:scaleY(0.6);
+    }
+
+  </style>
+
+  <script>
+    const Hourele = document.querySelector('.hour-hand');
+    const Minele = document.querySelector('.min-hand');
+    const Secele = document.querySelector('.second-hand');
+
+    function setTime() {
+      let date = new Date();
+      document.querySelector('h2').textContent=date.toLocaleString();
+      let sec=date.getSeconds();
+      let min=date.getMinutes();
+      let hour=date.getHours();
+      if (sec === 0){i++;}
+      if (min === 0){j++;}
+      if (hour === 0 && min === 0){z++;}
+      Secele.style.transform=`rotate(${sec * 6 + 90 + i * 360}deg) scaleY(0.6)`;
+      Minele.style.transform=`rotate(${min * 6 + 90 + j * 360}deg) scale(0.9,0.9)`;
+      Hourele.style.transform=`rotate(${(hour + min / 60) * 30 + 90 + z * 360}deg) scale(0.6,1.2)`;
+    }
+
+    // 与setTimeout()不同，他调用无限次 clearInterval()停止调用
+    //i j z 记录实时圈数 防止动画崩坏问题
+    setInterval(setTime,1000,i=0,j=0,z=0);
+    setTime();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JS Drum Kit</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+
+  <div class="keys">
+
+    <div class="col65">
+    <div data-key="65" class="key">
+      <kbd>A</kbd>
+      <span class="sound">C4</span>
+    </div>
+    <span  style="--i:1"></span>
+    <span  style="--i:2"></span>
+
+    </div>
+
+    <div class="col83">
+    <div data-key="83" class="key">
+      <kbd>S</kbd>
+      <span class="sound">D4</span>
+    </div>
+      <span  style="--i:1"></span>
+      <span  style="--i:2"></span>
+
+    </div>
+
+    <div class="col68">
+    <div data-key="68" class="key " >
+      <kbd>D</kbd>
+      <span class="sound">E4</span>
+    </div>
+    <span  style="--i:1"></span>
+    <span  style="--i:2"></span>
+
+  </div>
+
+    <div class="col70">
+    <div data-key="70" class="key">
+      <kbd>F</kbd>
+      <span class="sound">F4</span>
+    </div>
+      <span  style="--i:1"></span>
+      <span  style="--i:2"></span>
+
+    </div>
+
+    <div class="col71">
+    <div data-key="71" class="key">
+      <kbd>G</kbd>
+      <span class="sound">G4</span>
+    </div>
+    <span  style="--i:1"></span>
+    <span  style="--i:2"></span>
+
+  </div>
+
+    <div class="col72">
+    <div data-key="72" class="key">
+      <kbd>H</kbd>
+      <span class="sound">A4</span>
+    </div>
+      <span  style="--i:1"></span>
+      <span  style="--i:2"></span>
+
+    </div>
+
+    <div class="col74">
+    <div data-key="74" class="key">
+      <kbd>J</kbd>
+      <span class="sound">B4</span>
+    </div>
+    <span  style="--i:1"></span>
+    <span  style="--i:2"></span>
+
+  </div>
+
+    <div class="col75">
+    <div data-key="75" class="key">
+      <kbd>K</kbd>
+      <span class="sound">C5</span>
+    </div>
+      <span  style="--i:1"></span>
+      <span  style="--i:2"></span>
+
+    </div>
+
+    <div class="col76">
+    <div data-key="76" class="key">
+      <kbd>L</kbd>
+      <span class="sound">D5</span>
+    </div>
+    <span  style="--i:1"></span>
+    <span  style="--i:2"></span>
+
+  </div>
+
+  </div>
+
+  <audio data-key="65" src="sounds/C4.MP3"></audio>
+  <audio data-key="83" src="sounds/D4.MP3"></audio>
+  <audio data-key="68" src="sounds/E4.MP3"></audio>
+  <audio data-key="70" src="sounds/F4.MP3"></audio>
+  <audio data-key="71" src="sounds/G4.MP3"></audio>
+  <audio data-key="72" src="sounds/A4.MP3"></audio>
+  <audio data-key="74" src="sounds/B4.MP3"></audio>
+  <audio data-key="75" src="sounds/C5.MP3"></audio>
+  <audio data-key="76" src="sounds/D5.MP3"></audio>
+
+
+
+
+</body>
+<script>
+  //获取符合键入要求的keycode以备比较
+  let keycode =Array.from(document.querySelectorAll('.keys .key')) .map(value =>  value.dataset.key);
+  window.addEventListener('keydown',function (event) {
+    //避免触碰其他不必要的键导致空指针
+    if (!keycode.some(value => value === event.keyCode.toString())){return;}
+    if (!event.repeat) {//按压状态
+      playMusic(event.keyCode);
+      animate(event.keyCode);
+    }
+  });
+
+  window.addEventListener('keyup',(event) =>{
+    if (!keycode.some(value => value === event.keyCode.toString())){return;}
+    let col = document.querySelector(`.col${event.keyCode}`);
+    let key = document.querySelector(`div[data-key='${event.keyCode}']`);
+    key.classList.remove('playing');
+    col.classList.remove('col');
+  });
+
+  function playMusic(keycode) {
+    let audio = document.querySelector(`audio[data-key='${keycode}']`);
+    if (!audio) return;
+      audio.load();
+      audio.play();
+  }
+
+  function animate(keycode) {
+    let col = document.querySelector(`.col${keycode}`);
+    let key = document.querySelector(`div[data-key='${keycode}']`);
+    col.classList.add('col');
+    key.classList.add('playing');
+  }
+
+
+</script>
+</html>

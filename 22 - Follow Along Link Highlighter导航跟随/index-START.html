@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>👀👀👀Follow Along Nav</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav>
+      <ul class="menu">
+        <li><a href="">Home</a></li>
+        <li><a href="">Order Status</a></li>
+        <li><a href="">Tweets</a></li>
+        <li><a href="">Read Our History</a></li>
+        <li><a href="">Contact Us</a></li>
+      </ul>
+    </nav>
+
+    <div class="wrapper">
+      <p>Lorem ipsum dolor sit amet, <a href="">consectetur</a> adipisicing elit. Est <a href="">explicabo</a> unde natus necessitatibus esse obcaecati distinctio, aut itaque, qui vitae!</p>
+      <p>Aspernatur sapiente quae sint <a href="">soluta</a> modi, atque praesentium laborum pariatur earum <a href="">quaerat</a> cupiditate consequuntur facilis ullam dignissimos, aperiam quam veniam.</p>
+      <p>Cum ipsam quod, incidunt sit ex <a href="">tempore</a> placeat maxime <a href="">corrupti</a> possimus <a href="">veritatis</a> ipsum fugit recusandae est doloremque? Hic, <a href="">quibusdam</a>, nulla.</p>
+      <p>Esse quibusdam, ad, ducimus cupiditate <a href="">nulla</a>, quae magni odit <a href="">totam</a> ut consequatur eveniet sunt quam provident sapiente dicta neque quod.</p>
+      <p>Aliquam <a href="">dicta</a> sequi culpa fugiat <a href="">consequuntur</a> pariatur optio ad minima, maxime <a href="">odio</a>, distinctio magni impedit tempore enim repellendus <a href="">repudiandae</a> quas!</p>
+    </div>
+
+  <script>
+    let itemA = document.querySelectorAll('a');
+    let span = document.createElement('span');
+    span.classList.add('highlight');
+    document.body.append(span);
+    function follow(event) {
+      console.log(event);
+      const { offsetWidth:spanWidth, offsetHeight:spanHeight} =event.target;
+      const { offsetTop:targetTop, offsetLeft:targetLeft} =event.target;
+      // 模板匹配写法需要对参数进行运算再赋值的建议以下写法
+      // const linkCoords = this.getBoundingClientRect(); //获取该元素的相对于当前视图窗口的位置信息，自身宽高度
+      // const coords = {
+      //   width: linkCoords.width,
+      //   height: linkCoords.height,
+      //   top: linkCoords.top + window.scrollY,
+      //   left: linkCoords.left + window.scrollX
+      // 采用第二种写法translate作用于整个页面，向下滚动后与上面距离减小，导致span位置发生变化
+      //因此得加上水平，垂直滚动的距离，减少滚动对getBoundingClientRect获取的数值影响
+      // };
+
+      span.style.width=`${spanWidth}px`;
+      span.style.height=`${spanHeight}px`;
+      //wrappers的offsetTop offsetLeft 是子元素相对于父元素表示的，因此得加上
+      span.style.top=`${targetTop+event.target.offsetParent.offsetTop}px`;
+      span.style.left=`${targetLeft+event.target.offsetParent.offsetLeft}px`;
+
+      // 第二种写法
+      // highlight.style.transform = `translate(${coords.left}px, ${coords.top}px)`;
+    }
+
+    //与mousemove区别，在作用区域内mousemove可以触发多次，而mouseenter只有刚进作用区域的一次
+    itemA.forEach(li => li.addEventListener('mouseenter',follow));
+  </script>
+</body>
+</html>
+

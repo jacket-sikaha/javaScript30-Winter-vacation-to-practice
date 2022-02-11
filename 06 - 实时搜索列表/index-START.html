@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+
+
+
+const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+
+  //1 获取数据 采用XMLHttpRequest
+let data;
+let xmlHttpRequest = new XMLHttpRequest();
+xmlHttpRequest.open("get" , endpoint);
+xmlHttpRequest.onreadystatechange=(() => {
+  if(xmlHttpRequest.readyState === XMLHttpRequest.DONE && xmlHttpRequest.status === 200)  data = JSON.parse(xmlHttpRequest.response) ;
+})
+xmlHttpRequest.send();
+
+// 也可以采用fetch方法，返回一个promise对象，利用then链式调用获取json数据，转成数组
+//与XMLHttpRequest类似  但比XMLHttpRequest更加的简洁。
+//// url (必须), options (可选)
+const cities = [];
+fetch(endpoint)
+        .then(blob => blob.json())
+        .then(data => cities.push(...data));
+
+//2 过滤数据  采用正则表达式去判断
+function inputSearch(word) {
+  const regExp = new RegExp(word, 'gi');//g i 分别用于指定全局匹配、匹配大小写不敏感
+  console.log(regExp);
+  return data.filter(item =>  item.city.match(regExp) || item.state.match(regExp));
+  // console.log(  "Winter Garden".includes('in'))  //includes缺点对于大小写敏感（区分）
+}
+
+//ES5显示数据实现
+// function giveSuggestion() {
+//   let result = inputSearch(input.value) ;
+//   let ul = document.createElement('ul');
+//   ul.classList.add("suggestions");
+//   result.forEach(value => {
+//     let li = document.createElement('li');
+//     li.innerHTML= `${value.city}, ${value.state}`;
+//     let span = document.createElement('span');
+//     span.innerHTML=  value.population;
+//     span.className= "population";
+//     li.append(span);
+//     ul.append(li);
+//   })
+//   suggestions.replaceChild(ul,document.querySelector('.suggestions'));
+// }
+
+  //正则表达式  逗号分隔数字
+  function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  //3 展示数据
+function giveSuggestion() {
+  let result = inputSearch(input.value);
+  const regExp = new RegExp(input.value, 'gi');
+  let show = result.map(place => {
+    let city = place.city.replace(regExp ,`<span class="hl">${input.value}</span>` );
+    let state = place.state.replace(regExp ,`<span class="hl">${input.value}</span>` );
+    return `<li>
+      <span class="name">${city}, ${state}</span>
+      <span class="population">${new Number(place.population).toLocaleString()}</span>
+        <!--      我采用number对象的特有输出方法处理数据-->
+    </li>`;
+  }).join('');//join 方法把数组转成字符串
+  suggestions.innerHTML = show;
+}
+
+let input = document.querySelector('.search');
+let suggestions = document.querySelector('.suggestions');
+input.addEventListener("keyup" , giveSuggestion);
+
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+html {
+  font-size: 10px;
+  background: url('./bg.jpg') top  center;
+  background-size: cover;
+}
+
+body,html {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.keys {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.col{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.key {
+  border: .4rem solid black;
+  border-radius: 50%;
+  margin: 2rem;
+  font-size: 1.5rem;
+  padding: 2rem .5rem;
+  transition: all .07s ease;
+  width: 10rem;
+  text-align: center;
+  color: white;
+  background: rgba(0,0,0,0.3);
+  text-shadow: 0 0 .5rem black;
+}
+
+.playing {
+  transform: scale(1.1);
+  border-color: #ffc600;
+  box-shadow: 0 0 1rem #ffc600;
+}
+
+kbd {
+  display: block;
+  font-size: 4rem;
+}
+
+.sound {
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: .1rem;
+  color: #ffc600;
+}
+
+/*选择col类里的span带有style的元素*/
+.col span[style]{
+  position: absolute;
+  border:none;
+  border-radius: 50%;
+  /*//绑定动画名*/
+  animation-name: identifier;
+  /*//动画播放耗时*/
+  animation-duration: 0.7s;
+  /*//动画播放速度*/
+  transition-timing-function:cubic-bezier(0.14, 1.04, 0.76, 0.9);;
+  /*//动画播放次数*/
+  /*animation-iteration-count: infinite;*/
+  /*//动画播放延迟  */
+  /*calc用于css属性值进行运算*/
+  /*每个kdb标签都定义了两个span围绕周围，--i设置好各个span的播放延迟*/
+  animation-delay: calc(0.3s * var(--i));
+}
+
+/*动画关键帧变化*/
+@keyframes identifier {
+0% {
+  border:3px solid #ffffff;
+  width: 120px;
+  height: 120px;
+  opacity: 1;
+}
+  50% {
+    border:3px solid #ffffff;
+    opacity: 0.4;
+  }
+  100% {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
+  }
+}
+
+
+
+

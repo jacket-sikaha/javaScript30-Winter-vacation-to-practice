@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JS Reference VS Copy</title>
+</head>
+<body>
+
+
+  <script>
+    // 基本数据类型拷贝
+    // 另外复制name的值传递给name2  两者互不影响
+    let name = 'Arvin' ;
+    let name2 = name;
+    console.log (name=== name2);
+    name ='aaa';
+    console.log (name, name2);// aaa   Arvin
+
+    let age = 23;
+    let age2 = age;
+    age = 34;
+    console.log(age, age2);//34 23
+
+    // start with strings, numbers and booleans
+
+    // Let's say we have an array
+
+    // 引用数据类型拷贝
+    //赋值引用  两个数组指向同一份数据
+    const players = ['Wes', 'Sarah', 'Ryan', 'Poppy'];
+    let team =players;
+    // team[0]=1;
+    console.log('players',players);
+    // console.log(team); //['1', 'Sarah', 'Ryan', 'Poppy']
+
+    //浅拷贝
+    let t2=players.slice();
+    t2[0]=2;
+    console.log(t2);
+
+    let t3=Array.from(players);
+    t3[0]=3;
+    console.log(t3);
+
+    let t4=[...players];//ES6
+    t4[0]=4;
+    console.log(t4);
+
+    let t5=[].concat(players);
+    t5[0]=5;
+    console.log(t5);
+
+    // and we want to make a copy of it.
+
+    // You might think we can just do something like this:
+
+    // however what happens when we update that array?
+
+    // now here is the problem!
+
+    // oh no - we have edited the original array too!
+
+    // Why? It's because that is an array reference, not an array copy. They both point to the same array!
+
+    // So, how do we fix this? We take a copy instead!
+
+    // one way
+
+    // or create a new array and concat the old one in
+
+    // or use the new ES6 Spread
+
+    // now when we update it, the original one isn't changed
+
+    // The same thing goes for objects, let's say we have a person object
+
+    // with Objects
+    //与数组同理  共同引用同一个name
+    const person = {
+      name: 'Wes Bos',
+      age: 80
+    };
+
+    //都是浅拷贝
+    let de=person;
+    // de.name='sikara';
+    console.log(person); //name='sikara'
+    // console.log(de);  //name='sikara'
+
+    let de2 = Object.assign({},person,{name:"my"});//第三个参数会覆盖原来的name
+    console.log(de2);
+
+
+    let de3 = {...person};//ES6
+    de3.name=222;
+    console.log(de3);
+    // and think we make a copy:
+
+    // how do we take a copy instead?
+
+    // We will hopefully soon see the object ...spread
+
+    // Things to note - this is only 1 level deep - both for Arrays and Objects. lodash has a cloneDeep method, but you should think twice before using it.
+
+    console.log('-------------------');
+
+    // 浅拷贝缺点  第二层之后的引用类型对象依然指向同一块内存空间
+    const author = {
+      name : 'Alice',
+      age : 34,
+      social : {
+        wechat : 'Alice Lala',
+        facebook :'athor.alice'
+      }
+    }
+    const au2 = Object . assign({}, author);
+    au2.name = '6';
+    au2.social.wechat = 'Lala-Alice一';//两者第二层的引用类型对象依然指向同一块内存空间
+    console.log(author);
+    console.log(au2);
+
+
+    //深拷贝 JSON  缺点不能复制函数对象，正则表达式RegExp对象 ,原型链会断掉指向Object
+    const au3=JSON.parse(JSON.stringify(author));
+    au3.social.wechat = 'sssssss';
+    console.log(au3);
+
+    //第二种遍历 键值赋值
+  </script>
+
+</body>
+</html>

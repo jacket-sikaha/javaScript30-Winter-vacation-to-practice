@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Mouse Shadow</title>
+</head>
+<body>
+
+  <div class="hero">
+<!--    contenteditable 可编辑-->
+    <h1 contenteditable>Sikara...</h1>
+  </div>
+
+  <style>
+  html {
+    color: black;
+    font-family: sans-serif;
+      background:center/ contain repeat-x url("18.png");
+  }
+
+  body {
+    margin: 0;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: black;
+
+  }
+
+  h1 {
+    text-shadow: 10px 10px 0 rgba(255, 78, 0,1);
+    font-size: 100px;
+    color: white;
+  }
+  </style>
+
+<script>
+  let text = document.querySelector('h1');
+  let div = document.querySelector('.hero');
+  const r=100;
+  function follow(event) {
+    //ES6获取div的宽高
+    const { offsetWidth:width, offsetHeight:height} =div;
+    // console.log(event.clientX,event.clientY);
+    // 返回触发鼠标事件时，鼠标指针相对于当前窗口的水平坐标。此处div大小正好是整个屏幕
+
+    //采用offsetX获取坐标会有小问题，子元素会影响，以下是获取坐标的平滑处理
+    //触碰到h1左边缘，上边缘，坐标会从0开始，因此需要加上元素相对于左，上边缘的距离
+    // let { offsetX: x, offsetY: y } = event;
+    //
+    // if (this !== e.target) {
+    //   x = x + e.target.offsetLeft;
+    //   y = y + e.target.offsetTop;
+    // }
+
+    //根据水平  垂直位置占比对应偏移位置
+    let xR=Math.round((event.clientX/width)*r - r/2);
+    let yR=Math.round((event.clientY/height)*r - r/2);
+
+   // text.style.textShadow=`${xR}px ${yR}px 0 rgba(255, 78, 0,1)`;
+
+    //可添加多个阴影
+    text.style.textShadow=`${xR}px ${yR}px 0 rgba(255, 78, 0,1),
+                          ${yR}px ${xR}px 0 rgba(255, 0, 209,1)`;
+  }
+
+  div.addEventListener('mousemove',follow);
+</script>
+</body>
+</html>

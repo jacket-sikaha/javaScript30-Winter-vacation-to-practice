@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scoped CSS Variables and JS</title>
+</head>
+<body>
+<h2>Update CSS Variables with <span class='hl'>JS</span></h2>
+
+<div class="controls">
+  <label for="spacing">Spacing:</label>
+  <input id="spacing" type="range" name="spacing" min="10" max="200" value="10" data-sizing="px">
+
+  <label for="blur">Blur:</label>
+  <input id="blur" type="range" name="blur" min="0" max="25" value="10" data-sizing="px">
+
+  <label for="base">Base Color</label>
+  <input id="base" type="color" name="base" value="#ffc600">
+</div>
+
+<img width="1000" height="100%" src="22.jpg">
+
+<style>
+
+  /*
+    misc styles, nothing to do with CSS variables
+  */
+
+  body {
+    text-align: center;
+    background: #193549;
+    color: white;
+    font-family: 'helvetica neue', sans-serif;
+    font-weight: 100;
+    font-size: 50px;
+  }
+
+  .controls {
+    margin-bottom: 50px;
+  }
+
+  input {
+    width: 100px;
+  }
+  img{
+    padding: 10px;
+    filter: blur(10px);
+    background:#ffc600 ;
+  }
+  .hl{
+    color:#ffc600 ;
+  }
+</style>
+
+<script>
+  //获取控制列表
+  const conList = document.querySelectorAll('.controls input');
+  const img = document.querySelector('img');
+  const span = document.querySelector('.hl');
+  function handUpdate(){
+    if (this.name==="spacing"){
+      img.style.padding=`${this.value}px`;
+    }
+    else if (this.name==="blur"){
+      img.style.filter= `blur(${this.value}px)`;
+    }
+    else {
+      img.style.background=`${this.value}`;
+      span.style.color=`${this.value}`;
+    }
+  }
+
+  //为列表input对象添加事件监听
+  //change针对form表单，input数据变化
+  conList.forEach(item=>{
+    item.addEventListener('change',handUpdate)});
+</script>
+
+</body>
+</html>
