@@ -21,7 +21,7 @@
 const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
 
   //1 获取数据 采用XMLHttpRequest
-let data;
+let data=[];
 let xmlHttpRequest = new XMLHttpRequest();
 xmlHttpRequest.open("get" , endpoint);
 xmlHttpRequest.onreadystatechange=(() => {

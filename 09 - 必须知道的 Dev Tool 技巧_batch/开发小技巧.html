@@ -51,11 +51,11 @@
 
     // Grouping together
     dogs.forEach(dog => {
-        console.groupCollapsed(`${dog.name}`);
+        console.groupCollapsed(`${dog.name}`);//必须，起始点，输出组合名字可以自定义
         console.log(`This is ${dog.name}`);
         console.log(`${dog.name} is ${dog.age} years old`);
         console.log(`${dog.name} is ${dog.age * 7} dog years old`);
-        console.groupEnd(`${dog.name}`);
+        console.groupEnd(`${dog.name}`);//必须，结束点 groupCollapsed已经定义了名字，这里就可以不需要再写了
     });
 
     // counting

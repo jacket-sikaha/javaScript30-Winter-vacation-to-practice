@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Flex Panels 💪</title>
   <link href='https://fonts.googleapis.com/css?family=Amatic+SC' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <style>
@@ -26,10 +25,12 @@
 
     .panels {
       min-height: 100vh;
+      /*字体离开对溢出部分的字体进行隐藏*/
       overflow: hidden;
       display: flex;
     }
 
+    /*调整图片的显示位置*/
     .panel {
       background: #6B0F9C;
       box-shadow: inset 0 0 0 5px rgba(255,255,255,0.1);
@@ -47,7 +48,6 @@
       /*在子元素定义放大比例 flex-grow，默认是0 不放大*/
       flex: 1;
       align-items: center;
-
       display: flex;
       flex-direction: column;
       justify-content: space-evenly;
@@ -72,10 +72,11 @@
       align-items: center;
     }
 
-    /*> 选取父元素的子元素    *  选取全部元素*/
+    /* > 选取父元素的子元素    *  选取全部元素 */
     .panel > *:first-child {
       transform: translateY(-100%);
     }
+    /*选取panel类下最后一个子元素*/
     .panel > *:last-child {
       transform: translateY(100%);
     }
@@ -86,11 +87,13 @@
       text-shadow: 0 0 4px rgba(0, 0, 0, 0.72), 0 0 14px rgba(0, 0, 0, 0.45);
       font-size: 2em;
     }
-    
+
+    /*nth-child(an+b) 当前元素的兄弟元素里匹配第2个元素*/
     .panel p:nth-child(2) {
       font-size: 4em;
     }
 
+    /*作用于带有panel和open的元素*/
     .panel.open {
       font-size: 40px;
       flex: 5;
@@ -142,7 +145,9 @@
       this.classList.toggle("open");
     }
     function fontFlex2(event) {
-      if (event.propertyName.includes('flex')){//监听动画结束输出名
+      //获取动画完成的参数名字
+      // console.log(event.propertyName);
+      if (event.propertyName.includes('flex')){//监听图片部分动画结束输出名
         this.classList.toggle("openAnime");
       }
     }

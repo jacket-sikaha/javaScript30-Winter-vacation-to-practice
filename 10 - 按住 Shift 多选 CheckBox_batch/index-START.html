@@ -100,7 +100,6 @@
   let item = document.querySelectorAll('.inbox input');
   let start;
   function choose(event) {
-
     if (event.shiftKey && this.checked ){ //按下shift情况去点击checkbox
       let end=[...item].indexOf(this);
       let result = Array.from(item).slice(Math.min(start, end), Math.max(start, end) + 1);//找出两位置之间的数组
