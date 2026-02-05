@@ -85,3 +85,24 @@ var divisorGame = function (n) {
   //  反之bao 拿到偶数，爱丽丝只能得到奇数选奇直到拿1 必输
   return n % 2 === 0;
 };
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var waysToStep = function (n) {
+  const MOD = 1000000007; // 大质数（只能被 1 和自身整除）
+  // 模运算的「等价性」关键性质：
+  // (a + b) % mod = [(a % mod) + (b % mod)] % mod
+  // (a × b) % mod = [(a % mod) × (b % mod)] % mod
+  const res = [1, 2, 4];
+  if (n <= 3) {
+    return res[n - 1];
+  }
+  for (let i = 3; i < n; i++) {
+    const element = (res[0] % MOD) + (res[1] % MOD) + (res[2] % MOD);
+    res.push(element % MOD);
+    res.shift();
+  }
+  return res[res.length - 1];
+};
