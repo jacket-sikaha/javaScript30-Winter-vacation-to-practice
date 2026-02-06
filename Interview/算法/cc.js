@@ -106,3 +106,50 @@ var waysToStep = function (n) {
   }
   return res[res.length - 1];
 };
+
+/**
+ * @param {string} sequence
+ * @param {string} word
+ * @return {number}
+ */
+var maxRepeating = function (sequence, word) {
+  let count = 0;
+  let tmp = word;
+  while (sequence.indexOf(tmp) !== -1) {
+    tmp += word;
+    count++;
+  }
+  return count;
+};
+
+/**
+ * @param {number} num
+ * @return {number}
+ */
+var reverseBits = function (num) {
+  // 步骤1：将num转为32位无符号整数的补码（关键：& 0xFFFFFFFF）
+  const unsigned32 = (num & 0xffffffff) >>> 0;
+  // 步骤2：转二进制字符串
+  let binary = unsigned32.toString(2);
+  // 步骤3：补前导零到32位（避免位数不足）
+  binary = binary.padStart(32, "0");
+  let dp = 0, // 记录遇到0之前算有几个1
+    dp1 = 0; // 遇到0 dp+1 就是补位后当前状态最大长度
+  // 一种情况就是前面还是1 dp1就能继续增加继续算最大len
+  // 再次断开 那就是新的补位状态最大长度
+  let res = 0;
+  for (let i = binary.length - 1; i >= 0; i--) {
+    const element = +binary[i];
+    if (element === 1) {
+      dp++;
+      dp1++;
+    } else if (element === 0) {
+      dp1 = dp + 1;
+      dp = 0;
+    }
+    res = Math.max(res, dp1);
+  }
+  console.log("res:", res);
+  return res;
+};
+reverseBits(-1);
