@@ -120,6 +120,55 @@ HTTP/1.1默认生效，框架/服务器已优化
 防止CSRF攻击，恶意请求预检会被服务器拒绝
 浏览器对 “非简单请求”（可能对服务器数据产生较大影响的请求）会格外谨慎
 
+### 能说一下pnpm吗 为什么pnpm这么快，解决了yarn npm的什么问题
+
+本质
+**pnpm = 全局仓库 + 硬链接 + 严格依赖树**
+
+一个全局仓库，相同的包只存一份，有就不需要下载，不像npm每次都下载一份新的
+npm是复制文件到nodemodule，pnpm 通过软硬连接到nodemodule 更快
+
+#### 幽灵依赖
+
+npm/yarn 的 hoisting 机制
+
+- 会把全部依赖扁平化，因此可能会出现一些依赖没有在package json声明的却能使用（隐患就是哪天a库升级，删掉了隐藏的b库，而代码依赖b库就会运行失败）
+
+pnpm 的根治方案：物理隔离 + 严格沙箱 通过文件系统结构物理阻断访问
+
+pnpm 的node module三层结构
+
+```text
+
+.pnpm/
+├── react@18.2.0/
+│   └── node_modules/
+│       ├── react → <store>/react
+│       └── scheduler → ../../scheduler@0.23.0/node_modules/scheduler
+├── scheduler@0.23.0/
+│   └── node_modules/
+│       └── scheduler → <store>/scheduler
+└── ...
+
+```
+
+1. 项目根目录 node_modules（第一层）
+
+   只包含直接依赖的软链接：如 react → .pnpm/react@18.2.0
+   无扁平化 hoisting：不会将间接依赖提升到根目录
+   作用：提供项目代码可直接访问的入口
+
+2. .pnpm 目录（第二层，虚拟存储）
+
+   内部局部扁平化，方便软链接复用同版本包，节省空间，但依然依赖隔离，不会把隐式依赖暴露到根目录 node_modules
+   如axios，除了自身直接依赖，可能会加上dependencies里的包，在.pnpm软连接加进来供axios正常运行,但依旧是这些依赖依然隔离在.pnpm
+
+3. 全局存储 ~/.pnpm-store（第三层）
+
+   内容寻址存储：按文件内容哈希存储，相同内容只存一份
+   硬链接机制：.pnpm 中的文件通过硬链接指向全局存储
+   磁盘优化：10 个项目使用相同包版本，仅存储 1 份物理文件
+
 ### vite怎么解决循环依赖
 
 a引用b b引用a，顶层模块作用域直接打印这个变量，直接使用会出现变量未初始化报错
