@@ -149,7 +149,30 @@ var reverseBits = function (num) {
     }
     res = Math.max(res, dp1);
   }
-  console.log("res:", res);
+
   return res;
 };
 reverseBits(-1);
+
+/**
+ * @param {number} num
+ * @return {number}
+ */
+var trainWays = function (num) {
+  const MOD = 1000000007; // 大质数（只能被 1 和自身整除）
+  let step0 = 1;
+  let step1 = 1;
+  if (num <= 1) {
+    return 1;
+  }
+  for (let i = 1; i < num; i++) {
+    let tmp = (step0 + step1) % MOD;
+    step0 = step1;
+    step1 = tmp;
+  }
+  return step1;
+};
+// 1 1 2 3 5 8
+trainWays(5);
+
+const first = () => {};
