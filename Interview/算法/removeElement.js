@@ -82,4 +82,4 @@ var solution = function (isBadVersion) {
     return l;
   };
 };
-(0, 1, 2, 3);
+
