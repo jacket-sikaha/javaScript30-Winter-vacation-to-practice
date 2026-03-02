@@ -121,3 +121,191 @@ findDisappearedNumbers([1, 1]);
 
 // 输入：nums = [1,1]
 // 输出：[2]
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var thirdMax = function (nums) {
+  // let tmp = [...new Set(nums)].sort();
+  // return tmp.length < 3 ? tmp[tmp.length - 1] : tmp[tmp.length - 3];
+  let first = null;
+  let second = null;
+  let third = null;
+
+  for (const num of nums) {
+    // 跳过重复值（核心：避免重复更新）
+    if (num === first || num === second || num === third) {
+      continue;
+    }
+
+    // 一次遍历更新前三大值（合并你的两次遍历逻辑）
+    if (first === null || num > first) {
+      third = second;
+      second = first;
+      first = num;
+    } else if (second === null || num > second) {
+      third = second;
+      second = num;
+    } else if (third === null || num > third) {
+      third = num;
+    }
+  }
+
+  // 不足三个不同值返回最大值，否则返回第三大值
+  return third === null ? first : third;
+};
+
+/**
+ * @param {number[]} g
+ * @param {number[]} s
+ * @return {number}
+ */
+var findContentChildren = function (g, s) {
+  if (s.length === 0) {
+    return 0;
+  }
+  let sum = 0;
+  // s.sort((a, b) => a - b);
+  // for (let i = 0; i < g.length; i++) {
+  //   const element = g[i];
+  //   for (let j = 0; j < s.length; j++) {
+  //     const cookie = s[j];
+  //     if (cookie >= element) {
+  //       s[j] = 0;
+  //       sum++;
+  //       break;
+  //     }
+  //   }
+  // }
+
+  // ----------------------
+  // 贪心 + 双指针
+  g.sort((a, b) => a - b);
+  s.sort((a, b) => a - b);
+  let i = 0,
+    j = 0;
+  while (i < g.length && j < s.length) {
+    if (g[i] <= s[j]) {
+      i++;
+      j++;
+      sum++;
+    } else {
+      j++;
+    }
+  }
+  return sum;
+};
+
+/**
+ * @param {number[]} bills
+ * @return {boolean}
+ */
+var lemonadeChange = function (bills) {
+  let five = 0;
+  let ten = 0;
+  let twenty = 0;
+  for (let i = 0; i < bills.length; i++) {
+    const element = bills[i];
+    switch (element) {
+      case 5:
+        five++;
+        continue;
+      case 10:
+        ten++;
+        if (five > 0) {
+          five--;
+        } else {
+          return false;
+        }
+        continue;
+      case 20:
+        twenty++;
+        // 找15
+        //  10+5
+        //  5+5+5
+        if (five > 0 && ten > 0) {
+          five--;
+          ten--;
+        } else if (five >= 3) {
+          five -= 3;
+        } else {
+          return false;
+        }
+        continue;
+      default:
+        return false;
+    }
+  }
+  return true;
+};
+[5, 5, 10, 20, 5, 5, 5, 5, 5, 5, 5, 5, 5, 10, 5, 5, 20, 5, 20, 5];
+
+/**
+ * @param {number[][]} grid
+ * @return {number}
+ */
+var surfaceArea = function (grid) {
+  const n = grid.length; // 网格边长（题目中是正方形网格）
+  let total = 0;
+
+  // 遍历每个位置的立方体数量
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      const count = grid[i][j];
+      if (count === 0) continue; // 无立方体，跳过
+
+      // 1. 基础表面积：count个立方体，每个6面，总6*count
+      let area = count * 6;
+
+      // 2. 减去垂直重叠（上下堆叠）：count个立方体有count-1个重叠面，每个重叠减2
+      area -= (count - 1) * 2;
+
+      // 3. 减去水平相邻重叠（上下左右四个方向）
+      // 上方（i-1,j）
+      if (i > 0) {
+        const upCount = grid[i - 1][j];
+        area -= 2 * Math.min(count, upCount); // 取较小值，是实际重叠的层数
+      }
+      // 左方（i,j-1）
+      if (j > 0) {
+        const leftCount = grid[i][j - 1];
+        area -= 2 * Math.min(count, leftCount);
+      }
+      // 下方（i+1,j）、右方（i,j+1）无需重复计算！
+      // 因为遍历是按i/j递增，后续遍历到(i+1,j)时会计算和(i,j)的重叠
+
+      // 累加当前位置的表面积
+      total += area;
+    }
+  }
+
+  return total;
+};
+
+// 测试用例（覆盖凹进去的场景）
+console.log(
+  surfaceArea([
+    [1, 2],
+    [3, 4],
+  ]),
+); // 输出 34（正确）
+console.log(
+  surfaceArea([
+    [1, 0],
+    [0, 2],
+  ]),
+); // 输出 16（凹进去的场景，正确）
+console.log(surfaceArea([[2]])); // 输出 10（单个位置2个立方体，正确）
+console.log(
+  surfaceArea([
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+  ]),
+); // 中间凹进去，输出 32（正确）
+
+surfaceArea([
+  [1, 2],
+  [3, 4],
+]);
