@@ -305,7 +305,170 @@ console.log(
   ]),
 ); // 中间凹进去，输出 32（正确）
 
-surfaceArea([
-  [1, 2],
-  [3, 4],
-]);
+/**
+ * @param {number[]} score
+ * @return {string[]}
+ */
+var findRelativeRanks = function (score) {
+  const positionMap = new Map(
+    score
+      .slice()
+      .sort((a, b) => b - a)
+      .map((n, i) => {
+        switch (i) {
+          case 0:
+            return [n, "Gold Medal"];
+          case 1:
+            return [n, "Silver Medal"];
+          case 2:
+            return [n, "Bronze Medal"];
+          default:
+            return [n, `${i + 1}`];
+        }
+      }),
+  );
+  return score.map((n) => positionMap.get(n));
+};
+
+console.log(
+  "findRelativeRanks([5,4,3,2,1])",
+  findRelativeRanks([5, 4, 3, 2, 1]),
+);
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findShortestSubArray = function (nums) {
+  const obj = new Map();
+  // 整理各个元素出现的位置索引
+  for (let index = 0; index < nums.length; index++) {
+    const element = nums[index];
+    if (!obj.has(element)) {
+      obj.set(element, [index]);
+    } else {
+      obj.get(element).push(index);
+    }
+  }
+  // 统计出现元素次数最大的连续子数组
+  // 连续子数组---其元素首尾相连的长度
+  // 出现两个一样的最大的度 就比较最小的连续子数组长度
+  let min = nums.length;
+  let max = 0;
+  for (const [key, value] of obj) {
+    if (value.length > max) {
+      min = value[value.length - 1] - value[0] + 1;
+      max = value.length;
+    } else if (value.length === max) {
+      min = Math.min(min, value[value.length - 1] - value[0] + 1);
+    }
+  }
+  console.log("min:", obj);
+  return min;
+};
+
+/**
+ *
+  优化 解法
+ */
+var findShortestSubArray1 = function (nums) {
+  // 存储结构：key=元素值，value=[首次索引, 末次索引, 出现次数]
+  const elemInfo = new Map();
+  const n = nums.length;
+  let minLength = n; // 最短子数组长度，初始为数组总长
+  let maxFrequency = 0; // 数组的度（最高出现次数）
+
+  // 第一次遍历：仅记录首次/末次索引+出现次数（无需存储所有索引）
+  for (let i = 0; i < n; i++) {
+    const num = nums[i];
+    if (!elemInfo.has(num)) {
+      // 首次出现：[首次索引, 末次索引, 出现次数]
+      elemInfo.set(num, [i, i, 1]);
+    } else {
+      const info = elemInfo.get(num);
+      info[1] = i; // 更新末次索引
+      info[2]++; // 更新出现次数
+    }
+  }
+
+  // 第二次遍历：找最高频元素的最短子数组
+  for (const [_, [first, last, count]] of elemInfo) {
+    if (count > maxFrequency) {
+      maxFrequency = count;
+      minLength = last - first + 1;
+    } else if (count === maxFrequency) {
+      minLength = Math.min(minLength, last - first + 1);
+    }
+  }
+
+  return minLength;
+};
+findShortestSubArray([1, 2, 2, 3, 1]);
+findShortestSubArray([1, 2, 2, 3, 1, 4, 2]);
+
+/**
+ * @param {number[]} nums
+ * @return {boolean}
+ */
+var isMonotonic = function (nums) {
+  let isIncreasing = true; // 标记是否可能递增
+  let isDecreasing = true; // 标记是否可能递减
+
+  for (let i = 1; i < nums.length; i++) {
+    const prev = nums[i - 1];
+    const curr = nums[i];
+
+    // 只要出现一次递减，就不可能是递增的
+    if (prev > curr) {
+      isIncreasing = false;
+    }
+    // 只要出现一次递增，就不可能是递减的
+    if (prev < curr) {
+      isDecreasing = false;
+    }
+
+    // 提前终止：既不递增也不递减，直接返回false
+    if (!isIncreasing && !isDecreasing) {
+      return false;
+    }
+  }
+
+  // 只要满足递增或递减其一，就是单调的
+  return isIncreasing || isDecreasing;
+};
+
+/**
+ * @param {string[]} operations
+ * @return {number}
+ */
+var calPoints = function (operations) {
+  const stack = []; // 栈：存储有效分数，命名更直观
+
+  for (const op of operations) {
+    const len = stack.length;
+    switch (op) {
+      case "+":
+        // 直接通过索引访问栈顶两个元素，避免slice创建新数组
+        stack.push(stack[len - 1] + stack[len - 2]);
+        break;
+      case "D":
+        // 访问栈顶元素，无需slice
+        stack.push(stack[len - 1] * 2);
+        break;
+      case "C":
+        stack.pop(); // 移除上一轮分数，逻辑不变
+        break;
+      default:
+        // 数字字符串：直接转数字入栈
+        stack.push(parseInt(op));
+    }
+  }
+
+  // 求和逻辑不变，简洁写法
+  return stack.reduce((sum, score) => sum + score, 0);
+};
+
+// 测试用例
+console.log(calPoints(["5", "2", "C", "D", "+"])); // 30（正确）
+console.log(calPoints(["5", "-2", "4", "C", "D", "9", "+", "+"])); // 27（正确）
+console.log(calPoints(["1"])); // 1（正确）
