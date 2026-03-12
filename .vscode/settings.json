@@ -1,0 +1,12 @@
+{
+  "trae.enableAddToChatTips": false,
+  "trae.enableCodelens": {
+    "enableInlineDocumentation": false,
+    "enableInlineExplain": false
+  },
+  "trae.enableInlineCommand": false,
+  "trae.tab.cue": false,
+  "trae.tab.enableRename": false,
+  "trae.tab.enableAutoImport": false,
+  "trae.tab.enableTabKeyboardShortcuts": false
+}

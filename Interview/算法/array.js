@@ -472,3 +472,182 @@ var calPoints = function (operations) {
 console.log(calPoints(["5", "2", "C", "D", "+"])); // 30（正确）
 console.log(calPoints(["5", "-2", "4", "C", "D", "9", "+", "+"])); // 27（正确）
 console.log(calPoints(["1"])); // 1（正确）
+
+/**
+ * @param {number[]} flowerbed
+ * @param {number} n
+ * @return {boolean}
+ */
+var canPlaceFlowers = function (flowerbed, n) {
+  // 边界问题 需要前后补0
+  flowerbed.push(0);
+  flowerbed.unshift(0);
+  for (let i = 0; i < flowerbed.length - 2; i++) {
+    // 核心思路 三个空位中间可以种
+    const cur = flowerbed[i];
+    const next = flowerbed[i + 1];
+    const nextnext = flowerbed[i + 2];
+    if (cur === 0 && next === 0 && nextnext === 0) {
+      n--;
+      flowerbed[i + 1] = 1;
+    }
+    //  # 优化：如果已经种够n朵，直接返回True（不用继续遍历）
+    if (n <= 0) return true;
+  }
+  console.log("flowerbed:", flowerbed);
+  return n <= 0;
+};
+canPlaceFlowers([1, 0, 0, 0, 0, 1]);
+canPlaceFlowers([0, 0, 1, 0, 0]);
+
+/**
+ * @param {string[]} words
+ * @return {string[]}
+ */
+var findWords = function (words) {
+  // 给你一个字符串数组 words ，只返回可以使用在 美式键盘 同一行的字母打印出来的单词。键盘如下图所示。
+  const a = new Map("qwertyuiop".split("").map((s) => [s, 0]));
+  const b = new Map("asdfghjkl".split("").map((s) => [s, 1]));
+  const c = new Map("zxcvbnm".split("").map((s) => [s, 2]));
+  const res = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const str = words[i];
+    let sum = new Set();
+    for (let j = 0; j < str.length; j++) {
+      const w = str[j].toLowerCase();
+      sum.add(a.get(w) ?? b.get(w) ?? c.get(w));
+    }
+    if (sum.size === 1) {
+      res.push(str);
+    }
+  }
+  return res;
+};
+
+/**
+ * 优化
+ * @param {string[]} words
+ * @return {string[]}
+ */
+var findWords1 = function (words) {
+  // 合并为1个Map：所有字母→对应行号，初始化更简洁
+  const keyboardMap = new Map([
+    ..."qwertyuiop".split("").map((s) => [s, 0]),
+    ..."asdfghjkl".split("").map((s) => [s, 1]),
+    ..."zxcvbnm".split("").map((s) => [s, 2]),
+  ]);
+  const res = [];
+
+  for (const word of words) {
+    // 取第一个字母的行号（转小写）
+    const targetLine = keyboardMap.get(word[0].toLowerCase());
+    let isSameLine = true;
+
+    // 遍历后续字母，只要有一个行号不同，立即终止遍历
+    for (let i = 1; i < word.length; i++) {
+      const curLine = keyboardMap.get(word[i].toLowerCase());
+      if (curLine !== targetLine) {
+        isSameLine = false;
+        break; // 提前终止，减少无意义遍历
+      }
+    }
+
+    if (isSameLine) {
+      res.push(word);
+    }
+  }
+
+  return res;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var arrayPairSum = function (nums) {
+  // 1. 原地排序，无需重新赋值
+  nums.sort((a, b) => a - b);
+  let sum = 0;
+  // 2. 步长2遍历，直接累加，省略冗余变量
+  for (let i = 0; i < nums.length; i += 2) {
+    sum += nums[i];
+  }
+  return sum;
+};
+// 给定长度为 2n 的整数数组 nums ，你的任务是将这些数分成 n 对, 例如 (a1, b1), (a2, b2), ..., (an, bn) ，使得从 1 到 n 的 min(ai, bi) 总和最大。
+
+// 示例 1：
+
+// 输入：nums = [1,4,3,2]
+// 输出：4
+// 解释：所有可能的分法（忽略元素顺序）为：
+// 1. (1, 4), (2, 3) -> min(1, 4) + min(2, 3) = 1 + 2 = 3
+// 2. (1, 3), (2, 4) -> min(1, 3) + min(2, 4) = 1 + 2 = 3
+// 3. (1, 2), (3, 4) -> min(1, 2) + min(3, 4) = 1 + 3 = 4
+// 所以最大总和为 4
+// 示例 2：
+
+// 输入：nums = [6,2,6,5,1,2]
+// 输出：9
+// 解释：最优的分法为 (2, 1), (2, 5), (6, 6). min(2, 1) + min(2, 5) + min(6, 6) = 1 + 2 + 6 = 9
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ * 核心优化方向：
+    鲁棒性：位运算解法无溢出风险，是这道题的最优解；
+    利用异或运算的特性 ——a ^ a = 0、a ^ 0 = a、异或满足交换律 / 结合律
+ */
+var missingNumber = function (nums) {
+  let len = nums.length;
+  let sum = (len * (len + 1)) / 2;
+  let total = nums.reduce((a, b) => a + b, 0);
+  return sum - total;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var dominantIndex = function (nums) {
+  const max = Math.max(...nums);
+  let res = 0;
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i] === max) {
+      res = i;
+      continue;
+    }
+    if (max < nums[i] * 2) {
+      return -1;
+    }
+  }
+  return res;
+};
+
+/**
+ * 优化 向量叉乘
+ * 
+ * 向量 AB = (bx-ax, by-ay)，向量 AC = (cx-ax, cy-ay)，叉乘公式：cross = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax)
+若 cross = 0：三点共线（不是回旋镖）；
+若 cross ≠ 0：三点不共线（是回旋镖）。
+ * @param {number[][]} points
+ * @return {boolean}
+ */
+var isBoomerang = function (points) {
+  const [[ax, ay], [bx, by], [cx, cy]] = points;
+  const k1 = by - ay === 0 ? "y" : bx - ax === 0 ? "x" : (by - ay) / (bx - ax);
+  const k2 = by - cy === 0 ? "y" : bx - cx === 0 ? "x" : (by - cy) / (bx - cx);
+  const k3 = cy - ay === 0 ? "y" : cx - ax === 0 ? "x" : (cy - ay) / (cx - ax);
+  return k1 !== k2 && k2 !== k3 && k1 !== k3;
+};
+
+/**
+ * @param {number[]} candyType
+ * @return {number}
+ */
+var distributeCandies = function (candyType) {
+  const uniqueCandyTypes = new Set(candyType).size;
+  let maxCanTake = candyType.length >> 1; // 位运算更快;
+  return Math.min(maxCanTake, uniqueCandyTypes);
+};
