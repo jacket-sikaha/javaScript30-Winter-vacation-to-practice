@@ -651,3 +651,358 @@ var distributeCandies = function (candyType) {
   let maxCanTake = candyType.length >> 1; // 位运算更快;
   return Math.min(maxCanTake, uniqueCandyTypes);
 };
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var findErrorNums = function (nums) {
+  let repeat = 0;
+  let disappear = 0;
+  const map1 = new Set(nums);
+  const map2 = new Set();
+  for (let i = 0; i < nums.length; i++) {
+    if (!map1.has(i + 1)) {
+      disappear = i + 1;
+    }
+    if (!map2.has(nums[i])) {
+      map2.add(nums[i]);
+    } else {
+      repeat = nums[i];
+    }
+    if (disappear && repeat) {
+      return [repeat, disappear];
+    }
+  }
+  return [repeat, disappear];
+};
+
+/**
+ * 原地哈希（最优，O (1) 额外空间）
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var findErrorNums = function (nums) {
+  let repeat = 0;
+  let disappear = 0;
+  const n = nums.length;
+
+  // 第一步：遍历标记，找重复数
+  for (let i = 0; i < n; i++) {
+    // num - 1 就是数组的索引
+    // 如果 1到n的数字数组没有重复数字，遍历都是能访问到每一个数字的
+    const num = Math.abs(nums[i]);
+    const idx = num - 1;
+    // 已标记为负数 → 该数重复
+    if (nums[idx] < 0) {
+      repeat = num;
+    } else {
+      // 标记为负数，表示该数已出现
+      nums[idx] = -nums[idx];
+    }
+  }
+
+  // 第二步：找缺失数（正数对应的索引+1）
+  for (let i = 0; i < n; i++) {
+    if (nums[i] > 0) {
+      disappear = i + 1;
+      break; // 找到后立即终止
+    }
+  }
+
+  return [repeat, disappear];
+};
+
+/**
+ * @param {string} paragraph
+ * @param {string[]} banned
+ * @return {string}
+ */
+var mostCommonWord = function (paragraph, banned) {
+  const map = new Set(banned);
+  // 匹配单词正则表达式
+  const arr = paragraph.toLowerCase().match(/[a-z]+/g) || [];
+
+  const obj = {};
+  let max = 0;
+  let result = "";
+  for (let i = 0; i < arr.length; i++) {
+    const word = arr[i];
+    if (map.has(word)) {
+      continue;
+    }
+    // 简化频率统计（一行替代if-else）
+    obj[word] = (obj[word] || 0) + 1;
+    if (max < obj[word]) {
+      result = word;
+      max = obj[word];
+    }
+  }
+  console.log("obj:", obj);
+  return result;
+};
+mostCommonWord("Bob hit a ball, the hit BALL flew far after it was hit.", [
+  "hit",
+]);
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findLengthOfLCIS = function (nums) {
+  let max = 1;
+  let count = 1;
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] > nums[i - 1]) {
+      count++;
+    } else {
+      count = 1;
+    }
+    max = Math.max(max, count);
+  }
+  return max;
+};
+
+/**
+ * @param {number[]} distance
+ * @param {number} start
+ * @param {number} destination
+ * @return {number}
+ */
+var distanceBetweenBusStops = function (distance, start, destination) {
+  let a = 0;
+  let b = 0;
+  if (start === destination) {
+    return 0;
+  }
+  let idx = start;
+  // 从start 到 destination
+  // 因为 start可能比destination大 所以都要取模
+  while (idx % distance.length !== destination) {
+    a += distance[idx % distance.length];
+    idx++;
+  }
+  // 从destination 到 start
+  idx = destination;
+  while (idx % distance.length !== start) {
+    b += distance[idx % distance.length];
+    idx++;
+  }
+
+  return a > b ? b : a;
+};
+distanceBetweenBusStops([7, 10, 1, 12, 11, 14, 5, 0], 7, 2);
+
+/**
+ * pref
+ * @param {number[]} distance
+ * @param {number} start
+ * @param {number} destination
+ * @return {number}
+ */
+var distanceBetweenBusStops = function (distance, start, destination) {
+  // 边界：起点=终点，距离为0
+  if (start === destination) return 0;
+
+  // 统一start < destination，简化顺时针遍历逻辑（避免环形取模）
+  let [s, d] =
+    start < destination ? [start, destination] : [destination, start];
+
+  // 1. 计算顺时针路径距离（s→d）
+  let clockwiseDist = 0;
+  for (let i = s; i < d; i++) {
+    clockwiseDist += distance[i];
+  }
+
+  // 2. 计算总距离（数组总和）
+  const totalDist = distance.reduce((sum, val) => sum + val, 0);
+
+  // 3. 逆时针路径距离 = 总距离 - 顺时针距离，取最小值
+  const counterClockwiseDist = totalDist - clockwiseDist;
+
+  return Math.min(clockwiseDist, counterClockwiseDist);
+};
+
+/**
+ * @param {string[]} strs
+ * @return {number}
+ */
+var minDeletionSize = function (strs) {
+  let count = 0;
+  const [cols, rows] = [strs[0].length, strs.length];
+  for (let i = 0; i < cols; i++) {
+    for (let j = 1; j < rows; j++) {
+      if (strs[j][i] < strs[j - 1][i]) {
+        count++;
+        break;
+      }
+    }
+  }
+  return count;
+};
+minDeletionSize(["cba", "daf", "ghi"]);
+
+/**
+ * @param {number[][]} matrix
+ * @return {boolean}
+ */
+var isToeplitzMatrix = function (matrix) {
+  // 边界1：空矩阵/单行/单列矩阵，天然满足托普利茨条件
+  if (matrix.length <= 1 || matrix[0].length <= 1) return true;
+  // -1 下和右的边缘item不存在 左上到右下的对角元素
+  for (let i = 0; i < matrix.length - 1; i++) {
+    for (let j = 0; j < matrix[i] - 1; j++) {
+      if (matrix[i][j] !== matrix[i + 1][j + 1]) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var pivotIndex = function (nums) {
+  // 1. 计算数组总和
+  const totalSum = nums.reduce((sum, num) => sum + num, 0);
+
+  // 2. 遍历每个下标，计算左侧和，判断是否满足条件
+  let leftSum = 0; // 初始左侧和为0（第一个元素左侧无元素）
+  for (let i = 0; i < nums.length; i++) {
+    // 右侧和 = 总和 - 左侧和 - 当前元素
+    const rightSum = totalSum - leftSum - nums[i];
+
+    // 找到中心下标，立即返回（保证最左侧）
+    if (leftSum === rightSum) {
+      return i;
+    }
+
+    // 左侧和 += 当前元素（为下一个下标做准备）
+    leftSum += nums[i];
+  }
+
+  // 遍历完无满足条件的下标
+  return -1;
+};
+
+var MyHashMap = function () {
+  this.map = {};
+};
+
+/**
+ * @param {number} key
+ * @param {number} value
+ * @return {void}
+ */
+MyHashMap.prototype.put = function (key, value) {
+  this.map[key] = value;
+};
+
+/**
+ * @param {number} key
+ * @return {number}
+ */
+MyHashMap.prototype.get = function (key) {
+  return this.map[key] ?? -1;
+};
+
+/**
+ * @param {number} key
+ * @return {void}
+ */
+MyHashMap.prototype.remove = function (key) {
+  delete this.map[key];
+};
+
+/**
+ * Your MyHashMap object will be instantiated and called as such:
+ * var obj = new MyHashMap()
+ * obj.put(key,value)
+ * var param_2 = obj.get(key)
+ * obj.remove(key)
+ */
+
+/**
+ * @param {number[]} aliceSizes
+ * @param {number[]} bobSizes
+ * @return {number[]}
+ */
+var fairCandySwap = function (aliceSizes, bobSizes) {
+  let alicesum = aliceSizes.reduce((a, b) => a + b);
+  let bobsum = bobSizes.reduce((a, b) => a + b);
+  for (let i = 0; i < aliceSizes.length; i++) {
+    const a = aliceSizes[i];
+    for (let j = 0; j < bobSizes.length; j++) {
+      const b = bobSizes[j];
+      if (alicesum - a + b === bobsum - b + a) {
+        return [a, b];
+      }
+    }
+  }
+  return [0, 0];
+};
+/**
+ * pref
+ * @param {number[]} aliceSizes
+ * @param {number[]} bobSizes
+ * @return {number[]}
+ */
+var fairCandySwap = function (aliceSizes, bobSizes) {
+  // 1. 计算两人总糖果数
+  const aliceSum = aliceSizes.reduce((sum, val) => sum + val, 0);
+  const bobSum = bobSizes.reduce((sum, val) => sum + val, 0);
+
+  // 2. 计算差值的一半（等式变形后的关键值）
+  // aliceSum - a + b = bobSum - b + a // 等式关系
+  // 2b = (bobSum - aliceSum) + 2a
+  const delta = (bobSum - aliceSum) / 2;
+
+  // 3. 将bob的糖果存入Set，用于O(1)查找
+  const bobSet = new Set(bobSizes);
+
+  // 4. 遍历alice的糖果，找满足条件的b
+  for (const a of aliceSizes) {
+    const targetB = a + delta;
+    // 找到目标b，立即返回（题目保证有唯一解）
+    if (bobSet.has(targetB)) {
+      return [a, targetB];
+    }
+  }
+
+  // 题目保证有解，此处仅为兜底
+  return [0, 0];
+};
+
+/**
+ * @param {number} n
+ * @param {number[][]} trust
+ * @return {number}
+ */
+var findJudge = function (n, trust) {
+  // 边界：n=1且无信任关系 → 1就是法官
+  if (n === 1) return 1;
+
+  // 初始化入度、出度数组（下标从1到n，对应小镇的人）
+  const inDegree = new Array(n + 1).fill(0);
+  const outDegree = new Array(n + 1).fill(0);
+
+  // 遍历trust，统计入度和出度
+  for (const [a, b] of trust) {
+    outDegree[a]++; // a信任别人 → 出度+1
+    inDegree[b]++; // b被信任 → 入度+1
+  }
+
+  // 遍历1~n，找满足条件的法官
+  for (let i = 1; i <= n; i++) {
+    if (inDegree[i] === n - 1 && outDegree[i] === 0) {
+      return i;
+    }
+  }
+
+  // 无满足条件的法官
+  return -1;
+};
+
+console.log("findJudge(2, [[1, 2]]):", findJudge(2, [[1, 2]]));
