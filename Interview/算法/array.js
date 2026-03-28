@@ -1006,3 +1006,321 @@ var findJudge = function (n, trust) {
 };
 
 console.log("findJudge(2, [[1, 2]]):", findJudge(2, [[1, 2]]));
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findLHS = function (nums) {
+  let len = 1;
+  let maxL = 1;
+
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] - nums[i - 1] > 1) {
+      len = Math.max(len, maxL);
+      len = 1;
+    } else {
+      len++;
+    }
+  }
+  return maxL;
+};
+
+/**
+ * @param {number[][]} image
+ * @param {number} sr
+ * @param {number} sc
+ * @param {number} color
+ * @return {number[][]}
+ */
+var floodFill = function (image, sr, sc, color) {
+  const y = image.length;
+  const x = image[0].length;
+  const originalColor = image[sr][sc];
+  const map = new Set(); // 记录走过的路避免无限递归
+  const dfs = (i, j) => {
+    // 边界判断：
+    // - 行r超出数组范围（<0 或 >= 行数）
+    // - 列c超出数组范围（<0 或 >= 列数）
+    // - 当前像素颜色≠原始颜色（不需要填充）
+    if (
+      i === y ||
+      j === x ||
+      i < 0 ||
+      j < 0 ||
+      map.has(`${i}${j}`) ||
+      image[i][j] !== originalColor
+    ) {
+      return;
+    }
+    map.add(`${i}${j}`);
+    image[i][j] = color;
+    dfs(i + 1, j);
+    dfs(i - 1, j);
+    dfs(i, j + 1);
+    dfs(i, j - 1);
+  };
+  dfs(sr, sc);
+  return image;
+};
+
+/**
+ * @param {number[]} bits
+ * @return {boolean}
+ */
+var isOneBitCharacter = function (bits) {
+  for (let i = 0; i < bits.length; i++) {
+    const element = bits[i];
+    // 抓住 “1 必须跳 2 步” 的核心规则
+    if (element === 1) {
+      // 倒数第二个是1 就是10 是false
+      if (i === bits.length - 2) {
+        return false;
+      }
+      i++;
+    }
+  }
+  return true;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {boolean[]}
+ */
+// 会产生【超大数溢出】问题
+// let str = "";
+// str = str + n;          // 不断拼接 0/1 字符串
+// parseInt(str, 2) % 5    // 转成二进制整数再取模
+var prefixesDivBy5 = function (nums) {
+  const res = [];
+  let num = 0;
+
+  for (const bit of nums) {
+    // 核心公式：永远只保留模5的值，不会溢出
+    //     下一个二进制数 = 当前数 * 2 + 新位
+    // 是否能被5整除 ← 只要看 (当前数*2+新位) %5 ==0
+    num = (num * 2 + bit) % 5;
+    res.push(num === 0);
+  }
+
+  return res;
+};
+
+/**
+ * 超级简单的正确思路（3 步走）
+1. 把数组从小到大排序
+2. 优先把最小的负数翻成正数（这样总和变大）
+3. 如果负数全部翻完了，k 还有剩余：
+剩下的次数是偶数：随便翻一个数两次 → 等于没变
+剩下的次数是奇数：必须翻最小的那个数一次（损失最小）
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var largestSumAfterKNegations = function (nums, k) {
+  // 1. 从小到大排序
+  nums.sort((a, b) => a - b);
+
+  // 2. 先把所有负数翻成正数（能翻多少翻多少）
+  for (let i = 0; i < nums.length && k > 0; i++) {
+    if (nums[i] < 0) {
+      nums[i] = -nums[i];
+      k--;
+    }
+  }
+
+  // 3. 还有剩余次数，就翻最小的那个数
+  if (k > 0 && k % 2 === 1) {
+    // 再排一次，找到最小的
+    nums.sort((a, b) => a - b);
+    nums[0] = -nums[0];
+  }
+
+  // 求和
+  return nums.reduce((a, b) => a + b);
+};
+[-2, 5, 0, 2, -2];
+[8, -7, -3, -9, 1, 9, -6, -9, 3];
+
+/**
+ * @param {string[]} words
+ * @param {string} order
+ * @return {boolean}
+ */
+var isAlienSorted = function (words, order) {
+  const map = new Map(order.split("").map((o, i) => [o, i + 1]));
+  for (let i = 0; i < words.length - 1; i++) {
+    for (let j = 0; j < Math.max(words[i].length, words[i + 1].length); j++) {
+      // 字符串比较，从头到尾逐个字符比较
+      // 顺序不符合，大的就返回
+      // 顺序符合，跳出循环 比较下一个字符串
+      // 相等就继续循环比较下一个字符
+      let _a = map.get(a[j]) ?? 0;
+      let _b = map.get(b[j]) ?? 0;
+      if (_a > _b) return false;
+      if (_a < _b) break;
+    }
+  }
+  return true;
+};
+
+/**
+ * pref
+ *
+ * @param {*} words
+ * @param {*} order
+ * @return {*}
+ */
+var isAlienSorted = function (words, order) {
+  // 建立字符:优先级映射（不用i+1，直接i即可）
+  const map = new Map(order.split("").map((ch, i) => [ch, i]));
+
+  // 遍历相邻的每一对单词
+  for (let i = 0; i < words.length - 1; i++) {
+    const a = words[i]; // 前一个单词
+    const b = words[i + 1]; // 后一个单词
+    const maxLen = Math.max(a.length, b.length);
+
+    for (let j = 0; j < maxLen; j++) {
+      // 不存在的字符优先级为0（更短）
+      const valA = map.get(a[j]) ?? 0;
+      const valB = map.get(b[j]) ?? 0;
+
+      // 1. 前一个字符 > 后一个 → 直接非法
+      if (valA > valB) return false;
+      // 2. 前一个字符 < 后一个 → 这对单词合法，跳出循环
+      if (valA < valB) break;
+      // 3. 相等 → 继续比较下一个字符（无需写代码，自动走下一轮j）
+    }
+
+    // 边界：前一个单词更长，且是后一个的前缀 → 非法
+    if (a.length > b.length && a.startsWith(b)) return false;
+  }
+
+  return true;
+};
+
+/**
+ * @param {number[]} stones
+ * @return {number}
+ */
+var lastStoneWeight = function (stones) {
+  const compare = () => {
+    if (stones.length <= 1) {
+      return stones[0] ?? 0;
+    }
+    stones.sort((a, b) => a - b);
+    const y = stones.pop();
+    const x = stones.pop();
+    let newstones = y - x;
+    if (newstones > 0) {
+      stones.push(newstones);
+    }
+    return compare();
+  };
+  return compare();
+};
+/**
+ * pref
+ * 改成迭代（更安全、更标准）
+ * @param {*} stones
+ * @return {*}
+ */
+var lastStoneWeight = function (stones) {
+  while (stones.length > 1) {
+    // 排序
+    stones.sort((a, b) => a - b);
+    // 拿最大两块
+    const y = stones.pop();
+    const x = stones.pop();
+    // 粉碎
+    const diff = y - x;
+    if (diff > 0) stones.push(diff);
+  }
+  return stones[0] || 0;
+};
+
+/**
+ * @param {number[][]} grid
+ * @param {number} k
+ * @return {number[][]}
+ */
+var shiftGrid = function (grid, k) {
+  const m = grid.length;
+  const n = grid[0].length;
+  while (k > 0) {
+    let tmp = new Array(m).fill(0).map(() => new Array(n).fill(0));
+    for (let i = 0; i < m; i++) {
+      for (let j = 0; j < n; j++) {
+        if (i === m - 1 && j === n - 1) {
+          tmp[0][0] = grid[i][j];
+        } else if (j === n - 1) {
+          tmp[i + 1][0] = grid[i][n - 1];
+        } else if (j < n - 1) {
+          tmp[i][j + 1] = grid[i][j];
+        } else {
+          tmp[i][j] = grid[i][j];
+        }
+      }
+    }
+    grid = tmp;
+    k--;
+  }
+  return grid;
+};
+shiftGrid(
+  [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
+  ],
+  1,
+);
+// 每次「迁移」操作将会引发下述活动：
+// 前两列右移 最后一列移到第一列且 grid[m - 1][n - 1] 的元素移动到 grid[0][0]
+// 位于 grid[i][j]（j < n - 1）的元素将会移动到 grid[i][j + 1]。
+// 位于 grid[i][n - 1] 的元素将会移动到 grid[i + 1][0]。
+// 位于 grid[m - 1][n - 1] 的元素将会移动到 grid[0][0]。
+
+/**
+ * @param {string[]} emails
+ * @return {number}
+ */
+var numUniqueEmails = function (emails) {
+  return new Set(
+    emails.map((s) => {
+      let [l, r] = s.split("@");
+      return l.replace(/\+[^@]+/, "").replace(/\./g, "") + "@" + r;
+    }),
+  ).size;
+};
+[
+  "test.email+alex@leetcode.com",
+  "test.e.mail+bob.cathy@leetcode.com",
+  "testemail+david@lee.tcode.com",
+].map((s) => {
+  let [l, r] = s.replace(/\+[^@]+/, "").split("@");
+  return l.replace(/\./g, "") + "@" + r;
+});
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var largestPerimeter = function (nums) {
+  let max = 0;
+  for (let i = 0; i < nums.length; i++) {
+    for (let j = i + 1; j < nums.length; j++) {
+      for (let k = j + 1; k < nums.length; k++) {
+        const a = nums[i];
+        const b = nums[j];
+        const c = nums[k];
+        if (a + b > c && a + c > b && b + c > a) {
+          max = Math.max(a + b + c, max);
+        }
+      }
+    }
+  }
+  return max;
+};
+largestPerimeter([1, 4, 8, 3, 2]);
