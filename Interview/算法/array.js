@@ -1323,4 +1323,246 @@ var largestPerimeter = function (nums) {
   }
   return max;
 };
+/**
+ * pref
+ * @param {number[]} nums
+ * @return {number}
+ */
+var largestPerimeter1 = function (nums) {
+  // 1. 从大到小排序（核心）
+  nums.sort((a, b) => b - a);
+
+  // 2. 遍历连续三个最大的数
+  for (let i = 0; i < nums.length - 2; i++) {
+    const a = nums[i]; // 最大边
+    const b = nums[i + 1]; // 次大边
+    const c = nums[i + 2]; // 最小边
+
+    // 3. 只需要判断这一个条件！
+    if (b + c > a) {
+      return a + b + c;
+    }
+  }
+
+  // 4. 没有能构成三角形的，返回0
+  return 0;
+};
 largestPerimeter([1, 4, 8, 3, 2]);
+
+/**
+ * @param {number[][]} points
+ * @return {number}
+ */
+var largestTriangleArea = function (points) {
+  let maxArea = 0;
+  const n = points.length;
+
+  // 枚举所有三个点
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      for (let k = j + 1; k < n; k++) {
+        const [x1, y1] = points[i];
+        const [x2, y2] = points[j];
+        const [x3, y3] = points[k];
+
+        // 面积公式
+        const area =
+          Math.abs(x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)) / 2;
+
+        maxArea = Math.max(maxArea, area);
+      }
+    }
+  }
+  return maxArea;
+};
+
+/**
+ * @param {string} s
+ * @param {character} c
+ * @return {number[]}
+ */
+var shortestToChar = function (s, c) {
+  const answer = new Array(s.length).fill(0);
+  const postion = [];
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] === c) {
+      postion.push(i);
+    }
+  }
+  for (let i = 0; i < s.length; i++) {
+    const element = s[i];
+    if (element !== c) {
+      answer[i] = Math.min(...postion.map((p) => Math.abs(i - p)));
+    }
+  }
+  return answer;
+};
+
+/**
+ *
+ * pref
+ * 
+ * 最优解法思路（超级好懂）
+ 两次遍历：
+ 从左往右遍历：记录左边最近 c 的距离
+ 从右往左遍历：记录右边最近 c 的距离
+ 每个位置取 左右最小距离
+ * @param {*} s
+ * @param {*} c
+ * @return {*} 
+ */
+var shortestToChar2 = function (s, c) {
+  const n = s.length;
+  const res = new Array(n).fill(n); // 初始设为最大值
+  let pos = n;
+
+  // 左 → 右
+  for (let i = 0; i < n; i++) {
+    if (s[i] === c) pos = i;
+    res[i] = Math.abs(i - pos);
+  }
+
+  // 右 → 左
+  for (let i = n - 1; i >= 0; i--) {
+    if (s[i] === c) pos = i;
+    res[i] = Math.min(res[i], Math.abs(i - pos));
+  }
+
+  return res;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var findMaxConsecutiveOnes = function (nums) {
+  let max = 0;
+  let len = 0;
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i]) {
+      len++;
+    } else {
+      max = Math.max(len, max);
+      len = 0;
+    }
+  }
+  if (len > 0) {
+    max = Math.max(len, max);
+  }
+  return max;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var sortArrayByParity = function (nums) {
+  const res = [];
+  for (let i = 0; i < nums.length; i++) {
+    const element = nums[i];
+    if (element % 2) {
+      res.push(element);
+    } else {
+      //  数组的 unshift 是 O (n) 操作（每次往头部插，后面所有元素都要往后挪一位）
+      res.unshift(element);
+    }
+  }
+  // 分离奇偶再合并（最简单、O (n)
+  const even = [],
+    odd = [];
+  for (const n of nums) {
+    n % 2 === 0 ? even.push(n) : odd.push(n);
+  }
+  return [...even, ...odd];
+  return res;
+};
+/**
+ * pref
+ * 双指针原地排序
+ * @param {*} nums
+ * @return {*}
+ */
+var sortArrayByParity1 = function (nums) {
+  let left = 0,
+    right = nums.length - 1;
+  while (left < right) {
+    // 左奇右偶 → 交换
+    if (nums[left] % 2 === 1 && nums[right] % 2 === 0) {
+      [nums[left], nums[right]] = [nums[right], nums[left]];
+      left++;
+      right--;
+    }
+    // 左边已是偶数 → 往右走
+    else if (nums[left] % 2 === 0) left++;
+    // 右边已是奇数 → 往左走
+    else right--;
+  }
+  return nums;
+};
+
+/**
+ * @param {number[]} num
+ * @param {number} k
+ * @return {number[]}
+ */
+var addToArrayForm = function (num, k) {
+  let flag = 0;
+  // 数字反转，从低位开始加，方便处理位数不一样的情况
+  const kArr = k.toString().split("").map(Number).reverse();
+  num = num.reverse();
+  // k 和 num 位数可能不一样
+  for (let i = 0; i < Math.max(num.length, kArr.length); i++) {
+    // 用?? 0 处理越界
+    const value = (num[i] ?? 0) + (kArr[i] ?? 0) + flag;
+    num[i] = value % 10;
+    flag = value >= 10 ? 1 : 0;
+  }
+  if (flag) num.push(1);
+  return num.reverse();
+};
+// 输入：num = [1,2,0,0], k = 34
+// 输出：[1,2,3,4]
+// 解释：1200 + 34 = 1234
+
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var findMaxAverage = function (nums, k) {
+  // 直接计算第一个窗口的和，不创建新数组（唯一优化点）
+  let currentSum = 0;
+  for (let i = 0; i < k; i++) {
+    currentSum += nums[i];
+  }
+
+  let maxSum = currentSum;
+  // 滑动窗口
+  for (let i = k; i < nums.length; i++) {
+    currentSum = currentSum + nums[i] - nums[i - k];
+    maxSum = Math.max(maxSum, currentSum);
+  }
+
+  return maxSum / k;
+};
+
+/**
+ * @param {number} rows
+ * @param {number} cols
+ * @param {number} rCenter
+ * @param {number} cCenter
+ * @return {number[][]}
+ */
+var allCellsDistOrder = function (rows, cols, rCenter, cCenter) {
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      grid.push([r, c]);
+    }
+  }
+  return grid.sort((a, b) => {
+    const d1 = Math.abs(a[0] - rCenter) + Math.abs(a[1] - cCenter);
+    const d2 = Math.abs(b[0] - rCenter) + Math.abs(b[1] - cCenter);
+    return d1 - d2;
+  });
+};
