@@ -1566,3 +1566,373 @@ var allCellsDistOrder = function (rows, cols, rCenter, cCenter) {
     return d1 - d2;
   });
 };
+
+/**
+ * @param {number[]} arr
+ * @return {number[]}
+ */
+var arrayRankTransform = function (arr) {
+  // 简化：Array.from 替代 [...set.values()]
+  const sortedUnique = Array.from(new Set(arr)).sort((a, b) => a - b);
+  // 构建数字->排名的映射
+  const map = new Map(sortedUnique.map((n, i) => [n, i + 1]));
+  // 映射返回
+  return arr.map((n) => map.get(n));
+};
+
+/**
+ * 队列缓存法
+ * @param {number[]} arr
+ * @return {void} Do not return anything, modify arr in-place instead.
+ */
+var duplicateZeros = function (arr) {
+  const tmp = [];
+  const n = arr.length;
+
+  for (let i = 0; i < n; i++) {
+    // 队列有值，先填充
+    if (tmp.length) {
+      tmp.push(arr[i]);
+      arr[i] = tmp.shift();
+    }
+    // 遇到0，入队0，开启缓存
+    if (arr[i] === 0) {
+      tmp.push(0);
+    }
+  }
+};
+
+var duplicateZeros1 = function (arr) {
+  const n = arr.length;
+  let tmp = [];
+  // 遍历到倒数第二位即可（最后一位复制会溢出）
+  for (let i = 0; i < n - 1; i++) {
+    if (arr[i] === 0) {
+      // 从后往前挪，避免元素覆盖
+      for (let j = n - 1; j > i + 1; j--) {
+        tmp.unshift(arr[j - 1]);
+        arr[j] = arr[j - 1];
+      }
+      // 复制0
+      arr[i + 1] = 0;
+      // 跳过刚复制的0
+      i++;
+      console.log("arr:", i, arr, tmp);
+      tmp = [];
+    }
+  }
+};
+// 示例 1：
+
+// 输入：arr = [1,0,2,3,0,4,5,0]
+// 输出：[1,0,0,2,3,0,0,4]
+// 解释：调用函数后，输入的数组将被修改为：[1,0,0,2,3,0,0,4]
+duplicateZeros1([1, 0, 2, 3, 0, 4, 5, 0]);
+
+/**
+ * @param {number[]} arr1
+ * @param {number[]} arr2
+ * @param {number} d
+ * @return {number}
+ */
+var findTheDistanceValue = function (arr1, arr2, d) {
+  let sum = 0;
+  for (let i = 0; i < arr1.length; i++) {
+    const a = arr1[i];
+    let flag = 1;
+    for (let j = 0; j < arr2.length; j++) {
+      const b = arr2[j];
+      if (flag === 0) {
+        break;
+      }
+      if (Math.abs(a - b) <= d) {
+        flag = 0;
+      }
+    }
+    sum += flag;
+  }
+  return sum;
+};
+
+/**
+ * @param {string} licensePlate
+ * @param {string[]} words
+ * @return {string}
+ */
+var shortestCompletingWord = function (licensePlate, words) {
+  // 1. 预处理牌照：小写+只留字母
+  const str = licensePlate.toLowerCase().replace(/[^a-z]/g, "");
+  // 2. 抽取频率统计函数（消除重复代码）
+  const getCharCount = (s) => {
+    const count = {};
+    for (const c of s) {
+      count[c] = (count[c] || 0) + 1;
+    }
+    return count;
+  };
+
+  const target = getCharCount(str); // 牌照需要的字母数量
+  let res = ""; // 初始化更简洁
+
+  for (const word of words) {
+    const wordCount = getCharCount(word);
+    // 校验是否满足条件
+    const isValid = Object.keys(target).every((c) => wordCount[c] >= target[c]);
+    if (!isValid) continue;
+
+    // 替换规则：空值 / 更短的单词
+    if (!res || word.length < res.length) {
+      res = word;
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {string[]} words
+ * @return {string[]}
+ */
+var commonChars = function (words) {
+  let last = undefined;
+  const getCharCount = (s) => {
+    const count = {};
+    for (const c of s) {
+      count[c] = (count[c] || 0) + 1;
+    }
+    return count;
+  };
+  for (let i = 0; i < words.length; i++) {
+    if (!last) {
+      last = getCharCount(words[i]);
+      continue;
+    }
+    const cur = getCharCount(words[i]);
+    const lastKeys = Object.keys(last);
+    for (let i = 0; i < lastKeys.length; i++) {
+      const element = lastKeys[i];
+      if (last[element] && cur[element]) {
+        last[element] = Math.min(last[element], cur[element]);
+      } else if (last[element] && !cur[element]) {
+        delete last[element];
+      }
+    }
+  }
+  return Object.entries(last)
+    .map(([k, v]) => {
+      if (v > 1) {
+        return new Array(v).fill(k);
+      }
+      return k;
+    })
+    .flat();
+};
+
+/**
+ * pref
+ *
+ * @param {*} words
+ * @return {*}
+ */
+var commonChars2 = function (words) {
+  const res = [];
+  // 第一个单词的频率
+  // 26字母替换 对象计算字符次数 ------ 字符串频率统计 = 一律用数组 [26]
+  const base = new Array(26).fill(0);
+  for (const c of words[0]) {
+    base[c.charCodeAt() - 97]++;
+  }
+
+  // 逐个单词求交集
+  for (let i = 1; i < words.length; i++) {
+    const cur = new Array(26).fill(0);
+    for (const c of words[i]) {
+      cur[c.charCodeAt() - 97]++;
+    }
+    // 刷新公共频率
+    for (let j = 0; j < 26; j++) {
+      base[j] = Math.min(base[j], cur[j]); // 取交集
+    }
+  }
+
+  // 生成结果
+  for (let i = 0; i < 26; i++) {
+    // 多个字符就插入多次
+    while (base[i]-- > 0) {
+      res.push(String.fromCharCode(i + 97));
+    }
+  }
+  return res;
+};
+commonChars(["bella", "label", "roller"]);
+
+/**
+ * @param {number[]} position
+ * @return {number}
+ */
+var minCostToMoveChips = function (position) {
+  if (position.length === 1) {
+    return 0;
+  }
+  let min = Number.POSITIVE_INFINITY;
+  const p = Array.from(new Set(position));
+  for (let i = 0; i < p.length; i++) {
+    let cost = 0;
+    for (let j = 0; j < position.length; j++) {
+      const element = position[j];
+      cost += Math.abs(element - p[i]) % 2;
+    }
+    min = Math.min(min, cost);
+  }
+  return min;
+};
+/**
+ * pref
+ *
+ * @param {*} position
+ * @return {*}
+ */
+var minCostToMoveChips = function (position) {
+  // 所有偶数位置 → 可以 0 花费移到同一个偶数点
+  // 所有奇数位置 → 可以 0 花费移到同一个奇数点
+  // 最终只有两种选择：
+  // 全部移到偶数位 → 成本 = 奇数的个数
+  // 全部移到奇数位 → 成本 = 偶数的个数
+  let odd = 0,
+    even = 0;
+  for (const p of position) {
+    p % 2 === 0 ? even++ : odd++;
+  }
+  return Math.min(odd, even);
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var sortedSquares = function (nums) {
+  return nums.map((n) => n * n).sort((a, b) => a - b);
+};
+/**
+ * pref
+ *
+ * @param {*} nums
+ * @return {*}
+ */
+var sortedSquares1 = function (nums) {
+  const n = nums.length;
+  // 新建结果数组
+  const res = new Array(n);
+  // 双指针
+  let left = 0,
+    right = n - 1;
+  // 从后往前填充（先放最大的数）
+  let index = n - 1;
+
+  while (left <= right) {
+    const leftSquare = nums[left] ** 2;
+    const rightSquare = nums[right] ** 2;
+
+    // 右边大，放右边，右指针左移
+    if (rightSquare > leftSquare) {
+      res[index] = rightSquare;
+      right--;
+    }
+    // 左边大/相等，放左边，左指针右移
+    else {
+      res[index] = leftSquare;
+      left++;
+    }
+    index--;
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var canThreePartsEqualSum = function (arr) {
+  const sum = arr.reduce((a, b) => a + b);
+  const p = sum / 3;
+
+  if (sum % 3 !== 0) {
+    return false;
+  }
+  let tmp = 0;
+  let count = 0;
+  for (let i = 0; i < arr.length; i++) {
+    tmp += arr[i];
+    if (tmp === p) {
+      count++;
+      tmp = 0;
+      // ✨ 关键优化：找到 3 段直接返回
+      if (count === 3) return true;
+    }
+  }
+  return false;
+  // 题目有很多组刚好等与p的情况，因此只需要超过3组都可以
+  // return count >= 3;
+};
+canThreePartsEqualSum([18, 12, -18, 18, -19, -1, 10, 10]);
+[10, -10, 10, -10, 10, -10, 10, -10];
+
+/**
+ * @param {string[]} words
+ * @param {string} chars
+ * @return {number}
+ */
+var countCharacters = function (words, chars) {
+  let res = 0;
+  const arr = new Array(26).fill(0);
+  // chars可用字符数
+  for (const element of chars) {
+    arr[element.charCodeAt() - 97] += 1;
+  }
+  // 核心逻辑：单词字符数 ≤ chars可用字符数 就累加长度
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    // 单词字符数
+    const tmp = new Array(26).fill(0);
+    for (const char of w) {
+      tmp[char.charCodeAt() - 97] += 1;
+    }
+    let flag = arr.every((num, i) => {
+      return num >= tmp[i];
+    });
+    if (flag) {
+      res += w.length;
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var validMountainArray = function (arr) {
+  const max = Math.max(...arr);
+  let isleft = true;
+  // 边界情况 最大值在数组头尾都不行
+  if (arr[0] === max || arr[arr.length - 1] === max) return false;
+  for (let i = 1; i < arr.length; i++) {
+    if (isleft) {
+      if (arr[i] <= arr[i - 1]) {
+        return false;
+      }
+    } else {
+      if (arr[i] >= arr[i - 1]) {
+        return false;
+      }
+    }
+    // 理想情况下 遍历到max就换边
+    if (max === arr[i]) {
+      isleft = false;
+    }
+  }
+  return true;
+};
+// arr.length >= 3
+// 在 0 < i < arr.length - 1 条件下，存在 i 使得：
+// arr[0] < arr[1] < ... arr[i-1] < arr[i]
+// arr[i] > arr[i+1] > ... > arr[arr.length - 1]
