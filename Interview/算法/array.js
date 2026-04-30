@@ -1932,7 +1932,594 @@ var validMountainArray = function (arr) {
   }
   return true;
 };
-// arr.length >= 3
-// 在 0 < i < arr.length - 1 条件下，存在 i 使得：
-// arr[0] < arr[1] < ... arr[i-1] < arr[i]
-// arr[i] > arr[i+1] > ... > arr[arr.length - 1]
+
+/**
+ * @param {number[][]} dominoes
+ * @return {number}
+ */
+var numEquivDominoPairs = function (dominoes) {
+  const map = {};
+  for (let i = 0; i < dominoes.length; i++) {
+    const [a, b] = dominoes[i];
+    const k1 = `${a}-${b}`;
+    const k2 = `${b}-${a}`;
+    if (map[k1]) {
+      map[k1]++;
+    } else if (!map[k1] && map[k2]) {
+      map[k2]++;
+    } else {
+      map[k1] = 1;
+    }
+  }
+  return Object.values(map).reduce((a, b) => {
+    let tmp = b > 1 ? (b * (b - 1)) / 2 : 0;
+    return a + tmp;
+  }, 0);
+};
+/**
+ *
+ * pref
+ * @param {*} dominoes
+ * @return {*}
+ */
+var numEquivDominoPairs = function (dominoes) {
+  // 数组存储频率（11-99，长度100足够）
+  const count = new Array(100).fill(0);
+  let res = 0;
+
+  for (const [a, b] of dominoes) {
+    // 🔥 核心：归一化生成唯一数字键（最快）
+    const key = a < b ? a * 10 + b : b * 10 + a;
+    count[key]++;
+  }
+
+  // 计算组合数 n*(n-1)/2
+  for (const n of count) {
+    res += (n * (n - 1)) / 2;
+  }
+
+  return res;
+};
+
+/**
+ * @param {number[]} salary
+ * @return {number}
+ */
+var average = function (salary) {
+  let max = 0;
+  let min = salary[0];
+  let sum = 0;
+  for (let i = 0; i < salary.length; i++) {
+    const element = salary[i];
+    if (element > max) {
+      max = element;
+    }
+    if (element < min) {
+      min = element;
+    }
+    sum += element;
+  }
+  return (sum - min - max) / (salary.length - 2);
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxProduct = function (nums) {
+  let a = 0;
+  let b = 0;
+  for (let i = 0; i < nums.length; i++) {
+    const element = nums[i];
+    // 遇到最大的直接顺序替换
+    if (element > a) {
+      b = a;
+      a = element;
+    } else if (element > b && element <= a) {
+      // 遇到只比b大的就只替换b
+      // [10,2,5,2]这种情况只有element > a ，b永远都是0
+      b = element;
+    }
+  }
+  return (a - 1) * (b - 1);
+};
+
+/**
+ * @param {number[][]} moves
+ * @return {string}
+ */
+var tictactoe = function (moves) {
+  const grid = new Array(3).fill(0).map(() => {
+    return ["", "", ""];
+  });
+
+  for (let i = 0; i < moves.length; i++) {
+    const man = i % 2 === 0 ? "X" : "O";
+    const [row, col] = moves[i];
+    grid[row][col] = man;
+  }
+
+  let l1 = grid[0][0] + grid[1][1] + grid[2][2];
+  let l2 = grid[0][2] + grid[1][1] + grid[2][0];
+  if ([l1, l2].includes("XXX")) {
+    return "A";
+  }
+  if ([l1, l2].includes("OOO")) {
+    return "B";
+  }
+  for (let i = 0; i < grid.length; i++) {
+    const rstr = grid[i].join("");
+    if (rstr === "XXX") {
+      return "A";
+    }
+    if (rstr === "OOO") {
+      return "B";
+    }
+    const cstr = grid[0][i] + grid[1][i] + grid[2][i];
+    if (cstr === "XXX") {
+      return "A";
+    }
+    if (cstr === "OOO") {
+      return "B";
+    }
+  }
+  return moves.length === 9 ? "Draw" : "Pending";
+};
+tictactoe([
+  [2, 0],
+  [1, 1],
+  [0, 2],
+  [2, 1],
+  [1, 2],
+  [1, 0],
+  [0, 0],
+  [0, 1],
+]);
+
+/**
+ * @param {number[]} arr
+ * @return {number}
+ */
+var findSpecialInteger = function (arr) {
+  const n = arr.length;
+  const threshold = n / 4;
+  let count = 1;
+
+  for (let i = 1; i < n; i++) {
+    if (arr[i] === arr[i - 1]) {
+      count++;
+      // 满足次数就返回
+      if (count > threshold) return arr[i];
+    } else {
+      count = 1;
+    }
+  }
+  // 因为题目保证一定存在答案，你不需要判断边界。
+  return arr[0];
+};
+
+/**
+ * @param {number[][]} coordinates
+ * @return {boolean}
+ */
+var checkStraightLine = function (coordinates) {
+  let k = undefined;
+  for (let i = 1; i < coordinates.length; i++) {
+    const [a, b] = coordinates[i];
+    const [c, d] = coordinates[i - 1];
+    // 除法有除数为0情况，也有浮点数情况导致精度确实 iee754
+    if (k === undefined) {
+      k = c - a === Infinity ? 0 : (d - b) / (c - a);
+    } else {
+      let tmp = c - a === 0 ? Infinity : (d - b) / (c - a);
+      if (tmp !== k) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+/**
+ * pref
+ *
+ * @param {*} coordinates
+ * @return {*}
+ */
+var checkStraightLine = function (coordinates) {
+  // 取第一个点作为基准
+  const [x0, y0] = coordinates[0];
+  const [x1, y1] = coordinates[1];
+  // 基准差值（固定不变）
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+
+  // 遍历剩余所有点
+  for (let i = 2; i < coordinates.length; i++) {
+    const [x, y] = coordinates[i];
+    // 乘法判断斜率相等，核心代码
+    if (dy * (x - x0) !== dx * (y - y0)) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {boolean}
+ */
+var kLengthApart = function (nums, k) {
+  let count = 0;
+  const first1 = nums.indexOf(1);
+  for (let i = first1 + 1; i < nums.length; i++) {
+    const element = nums[i];
+    if (element !== 1) {
+      count++;
+    } else {
+      if (count < k) return false;
+      count = 0;
+    }
+  }
+  return true;
+};
+
+/**
+ * pref
+ *
+ * @param {*} nums
+ * @param {*} k
+ * @return {*}
+ */
+var kLengthApart2 = function (nums, k) {
+  // 获取数组的长度
+  const n = nums.length;
+
+  // prev 用于记录上一个 1 的位置
+  // 初始化为 -1，表示还没有遇到任何 1
+  let prev = -1;
+
+  // 从左到右遍历数组中的每个元素
+  for (let i = 0; i < n; ++i) {
+    // 检查当前元素是否为 1
+    if (nums[i] === 1) {
+      // 如果之前已经遇到过 1（prev !== -1）
+      // 并且当前 1 与上一个 1 之间的元素个数小于 k
+      // i - prev - 1 计算的是两个 1 之间的元素数量
+      // 例如：
+      //   prev = 2, i = 5，中间有索引 3,4 两个元素，距离 = 5-2-1 = 2
+      //   prev = 0, i = 3，中间有索引 1,2 两个元素，距离 = 3-0-1 = 2
+      if (prev !== -1 && i - prev - 1 < k) {
+        // 如果间隔不足 k，则不符合条件
+        return false;
+      }
+      // 更新上一个 1 的位置为当前位置
+      prev = i;
+    }
+  }
+
+  // 遍历完所有元素都没有发现问题，符合条件
+  return true;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {number[][]}
+ */
+var minimumAbsDifference = function (arr) {
+  const res = [];
+  arr.sort((a, b) => a - b);
+  let min = Infinity;
+  for (let i = 1; i < arr.length; i++) {
+    min = Math.min(min, Math.abs(arr[i] - arr[i - 1]));
+  }
+  for (let i = 0; i < arr.length; i++) {
+    if (Math.abs(arr[i] - arr[i - 1]) === min) {
+      res.push([arr[i - 1], arr[i]]);
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number} n
+ * @return {number[]}
+ */
+var sumZero = function (n) {
+  const res = [];
+  for (let i = 0; i < n >> 1; i++) {
+    let num = i + 1;
+    res.push(-num, num);
+  }
+  if (n % 2 === 1) {
+    res.push(0);
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} prices
+ * @return {number[]}
+ */
+var finalPrices = function (prices) {
+  const res = [];
+  for (let i = 0; i < prices.length; i++) {
+    let tmp = 0;
+    for (let j = i + 1; j < prices.length; j++) {
+      if (prices[j] <= prices[i]) {
+        tmp = prices[j];
+        break;
+      }
+    }
+    res.push(prices[i] - tmp);
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var runningSum = function (nums) {
+  const res = [];
+  let sum = 0;
+  for (const element of nums) {
+    sum += element;
+    res.push(sum);
+  }
+  return res;
+};
+
+/**
+ * pref
+ *
+ * @param {*} nums
+ * @return {*}
+ */
+var runningSum = function (nums) {
+  // 直接修改原数组 i就是前一个的和
+  for (let i = 1; i < nums.length; i++) {
+    nums[i] += nums[i - 1];
+  }
+
+  return nums;
+};
+
+/**
+ * @param {number[]} nums
+ * @param {number} threshold
+ * @return {number}
+ */
+var longestAlternatingSubarray = function (nums, threshold) {
+  let maxLen = 0;
+  let curLen = 0;
+
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i] > threshold) {
+      curLen = 0;
+      continue;
+    }
+
+    if (curLen > 0) {
+      // 能继续交替
+      if (nums[i] % 2 !== nums[i - 1] % 2) {
+        curLen++;
+      } else {
+        // 不能继续，看自己是不是偶数起点
+        curLen = nums[i] % 2 === 0 ? 1 : 0;
+      }
+    } else {
+      // 新起点：必须是偶数
+      curLen = nums[i] % 2 === 0 ? 1 : 0;
+    }
+
+    maxLen = Math.max(maxLen, curLen);
+  }
+
+  return maxLen;
+};
+longestAlternatingSubarray([2, 2], 3);
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var canMakeArithmeticProgression = function (arr) {
+  arr.sort((a, b) => a - b);
+  let tmp = arr[1] - arr[0];
+  for (let i = 1; i < arr.length; i++) {
+    if (arr[i] - arr[i - 1] !== tmp) {
+      return false;
+    }
+  }
+  return true;
+};
+
+/**
+ * @param {number[]} arr
+ * @param {number} k
+ * @return {number}
+ */
+var findKthPositive = function (arr, k) {
+  const map = new Set(arr);
+  let i = 1;
+  while (k > 0) {
+    if (!map.has(i)) {
+      k--;
+    }
+    if (k > 0) i++;
+  }
+  return i;
+};
+/**
+ * pref
+ *
+ * @param {*} arr
+ * @param {*} k
+ * @return {*}
+ */
+var findKthPositive2 = function (arr, k) {
+  for (const num of arr) {
+    // 当前数字 <= 缺失的计数，说明没有跳过数字
+    // [2] k = 5
+    // 1 2 3 4 5 6  2占了一个位置 因此 6就是答案
+    if (num <= k) k++;
+    // 数字 >k，后面的数更大，直接跳出
+    else break;
+  }
+  return k;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var minStartValue = function (nums) {
+  let res = 1;
+  let count = res;
+  for (let i = 0; i < nums.length; i++) {
+    count += nums[i];
+    // 不符合要求 就+1重新遍历
+    if (count < 1) {
+      res++;
+      count = res;
+      i = -1;
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @param {number} a
+ * @param {number} b
+ * @param {number} c
+ * @return {number}
+ */
+var countGoodTriplets = function (arr, a, b, c) {
+  let res = 0;
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (Math.abs(arr[i] - arr[j]) > a) continue; // 不符合提前退出
+      for (let k = j + 1; k < arr.length; k++) {
+        if (Math.abs(arr[j] - arr[k]) <= b && Math.abs(arr[i] - arr[k]) <= c)
+          res++;
+      }
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var uniqueOccurrences = function (arr) {
+  const obj = {};
+  for (let i = 0; i < arr.length; i++) {
+    obj[arr[i]] = (obj[arr[i]] || 0) + 1;
+  }
+  const tmp = Object.values(obj);
+  return tmp.length === new Set(tmp).size;
+};
+
+/**
+ * @param {number} n
+ * @param {number[]} rounds
+ * @return {number[]}
+ */
+var mostVisited = function (n, rounds) {
+  // 🔥 修复：初始化长度n+1的数组，全0，无稀疏数组
+  const fan = new Array(n + 1).fill(0);
+  let move = rounds[0];
+  fan[move] = 1;
+
+  for (let i = 1; i < rounds.length; i++) {
+    const next = rounds[i];
+    while (next !== move) {
+      move++;
+      if (move > n) move = 1;
+      fan[move]++;
+    }
+  }
+
+  const max = Math.max(...fan);
+  const res = [];
+  for (let i = 1; i <= n; i++) {
+    if (fan[i] === max) res.push(i);
+  }
+  return res;
+};
+
+// 跑道是环形的，不管你中间跑了多少圈、绕了多少路，所有完整的圈，每个扇区跑的次数都一模一样！
+// 只有最开始的起点 → 最后停下的终点，这一小段路，会让部分扇区多跑一次。→ 访问次数最多的扇区，就是起点到终点的这一段！
+var mostVisited2 = function (n, rounds) {
+  const start = rounds[0]; // 第一步：找起点
+  const end = rounds.at(-1); // 第二步：找终点
+  const res = [];
+
+  if (start <= end) {
+    // 情况1：顺着跑，直接从起点加到终点
+    for (let i = start; i <= end; i++) res.push(i);
+  } else {
+    // 情况2：绕圈跑，先加1~终点，再加起点~n
+    for (let i = 1; i <= end; i++) res.push(i);
+    for (let i = start; i <= n; i++) res.push(i);
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} widths
+ * @param {string} s
+ * @return {number[]}
+ */
+var numberOfLines = function (widths, s) {
+  let lines = 1;
+  let current = 0;
+
+  for (const c of s) {
+    const w = widths[c.charCodeAt() - 97];
+    if (current + w > 100) {
+      lines++;
+      current = w;
+    } else {
+      current += w;
+    }
+  }
+
+  return [lines, current];
+};
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var checkIfExist = function (arr) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = i + 1; j < arr.length; j++) {
+      if (arr[i] == 2 * arr[j] || arr[j] == 2 * arr[i]) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+/**
+ * pref
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var checkIfExist2 = function (arr) {
+  let hash = new Set();
+  // 记住元素x2 /2 结果 有就说明有符合要求的元素
+  for (const n of arr) {
+    if (hash.has(n / 2) || hash.has(n * 2)) return true;
+
+    hash.add(n);
+  }
+
+  return false;
+};
