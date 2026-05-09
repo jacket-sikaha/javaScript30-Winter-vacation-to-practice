@@ -2523,3 +2523,278 @@ var checkIfExist2 = function (arr) {
 
   return false;
 };
+
+/**
+ * @param {number[][]} boxTypes
+ * @param {number} truckSize
+ * @return {number}
+ */
+var maximumUnits = function (boxTypes, truckSize) {
+  let sum = 0;
+  boxTypes.sort((a, b) => b[1] - a[1]);
+  for (let i = 0; i < boxTypes.length; i++) {
+    const [numberOfBoxesi, numberOfUnitsPerBoxi] = boxTypes[i];
+    if (numberOfBoxesi > truckSize) {
+      return sum + truckSize * numberOfUnitsPerBoxi;
+    }
+    sum = sum + numberOfBoxesi * numberOfUnitsPerBoxi;
+    truckSize -= numberOfBoxesi;
+  }
+  return sum;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {number}
+ */
+var findLucky = function (arr) {
+  arr.sort((a, b) => a - b);
+  let res = -1;
+  let tmp = arr[0];
+  let sum = 0;
+  for (const element of arr) {
+    if (tmp === element) {
+      sum++;
+    } else {
+      if (tmp === sum) {
+        res = tmp;
+      }
+      tmp = element;
+      sum = 1;
+    }
+  }
+  return tmp === sum ? tmp : res;
+};
+
+var findLucky2 = function (arr) {
+  // 数字范围1~500，创建频率数组
+  const freq = new Array(501).fill(0);
+  // 统计次数 O(n)
+  for (const num of arr) {
+    freq[num]++;
+  }
+  let res = -1;
+  // 从大到小遍历，直接找到最大的幸运数字
+  for (let i = 500; i >= 1; i--) {
+    if (freq[i] === i) {
+      return i;
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[][]} matrix
+ * @return {number[]}
+ */
+var luckyNumbers = function (matrix) {
+  const rowMins = [];
+  // 第一步：存储每一行的最小值
+  for (const row of matrix) {
+    rowMins.push(Math.min(...row));
+  }
+
+  const res = [];
+  const cols = matrix[0].length;
+  const rows = matrix.length;
+
+  // 第二步：遍历每一列
+  for (let j = 0; j < cols; j++) {
+    let maxVal = 0;
+    let rowIdx = 0;
+    // 找当前列的最大值 + 所在行
+    for (let i = 0; i < rows; i++) {
+      if (matrix[i][j] > maxVal) {
+        maxVal = matrix[i][j];
+        rowIdx = i;
+      }
+    }
+    // 核心判断：列最大值 === 对应行的最小值
+    if (rowMins[rowIdx] === maxVal) {
+      res.push(maxVal);
+    }
+  }
+
+  return res;
+};
+
+/**
+ * @param {number[]} digits
+ * @return {number[]}
+ */
+var findEvenNumbers = function (digits) {
+  const yes = [];
+  const len = digits.length;
+  // 遍历所有 3个不同索引 的组合
+  for (let i = 0; i < len; i++) {
+    for (let j = 0; j < len; j++) {
+      for (let k = 0; k < len; k++) {
+        // 核心：三个索引必须不同（这才是正确的选法！你之前i<j<k漏了大量组合）
+        if (i === j || j === k || i === k) continue;
+        const num = digits[i] * 100 + digits[j] * 10 + digits[k];
+        // 直接过滤：≥100 + 偶数
+        if (num >= 100 && num % 2 === 0) {
+          yes.push(num);
+        }
+      }
+    }
+  }
+  return Array.from(new Set(yes)).sort((a, b) => a - b);
+};
+
+/**
+ * pref
+ *
+ * @param {*} digits
+ * @return {*}
+ */
+var findEvenNumbers2 = function (digits) {
+  // 统计0-9每个数字的出现次数
+  const cnt = new Array(10).fill(0);
+  for (const d of digits) cnt[d]++;
+
+  const res = [];
+  // 枚举所有3位偶数
+  for (let num = 100; num <= 999; num += 2) {
+    const a = Math.floor(num / 100); // 百位
+    const b = Math.floor(num / 10) % 10; // 十位
+    const c = num % 10; // 个位
+    // 临时统计，不修改原数组
+    const t = [...cnt];
+    t[a]--;
+    t[b]--;
+    t[c]--;
+    // 所有数字次数≥0，说明可以组成
+    if (t.every((v) => v >= 0)) {
+      res.push(num);
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[][]} logs
+ * @return {number}
+ */
+var maximumPopulation = function (logs) {
+  const years = new Array(101).fill(0);
+  for (let i = 0; i < logs.length; i++) {
+    const [birth, death] = logs[i];
+    for (let j = birth - 1950; j < death - 1950; j++) {
+      years[j]++;
+    }
+  }
+  let maxIdx = 0;
+  for (let i = 0; i < years.length; i++) {
+    const element = years[i];
+    if (element > years[maxIdx]) {
+      maxIdx = i;
+    }
+  }
+  return maxIdx + 1950;
+};
+
+/**
+ * pref
+ *
+ * @param {*} logs
+ * @return {*}
+ */
+var maximumPopulation2 = function (logs) {
+  const diff = new Array(101).fill(0);
+  // 差分数组原理---专门用来「区间批量加 / 减」，不用挨个循环每一个元素
+  //   4. 通用口诀（背下来就行）
+  // 对数组要做：[L, R) 全部 +val差分数组操作：
+  // diff[L] += val
+  // diff[R] -= val
+  // 最后 从头遍历累加前缀和，就得到每个位置最终值
+  for (const [birth, death] of logs) {
+    // 区间起点+1
+    diff[birth - 1950]++;
+    // 区间终点-1
+    diff[death - 1950]--;
+  }
+
+  let maxPop = 0;
+  let curPop = 0;
+  let res = 0;
+
+  // 计算前缀和，同时找最大值
+  for (let i = 0; i < 101; i++) {
+    curPop += diff[i];
+    // 严格大于才更新，保证取最早年份
+    if (curPop > maxPop) {
+      maxPop = curPop;
+      res = i + 1950;
+    }
+  }
+
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {number[]}
+ */
+var replaceElements = function (arr) {
+  let n = arr.length;
+  let maxRight = -1;
+
+  // 从后往前遍历
+  for (let i = n - 1; i >= 0; i--) {
+    // 先保存当前值
+    let cur = arr[i];
+    // 当前位置替换成右边最大值
+    arr[i] = maxRight;
+    // 更新右边最大值
+    if (cur > maxRight) {
+      maxRight = cur;
+    }
+  }
+  return arr;
+};
+
+/**
+ * @param {number} m
+ * @param {number} n
+ * @param {number[][]} indices
+ * @return {number}
+ */
+var oddCells = function (m, n, indices) {
+  const grid = new Array(m).fill(0).map(() => new Array(n).fill(0));
+  for (const [r, c] of indices) {
+    for (let i = 0; i < grid[r].length; i++) {
+      grid[r][i]++;
+    }
+    for (let i = 0; i < grid.length; i++) {
+      grid[i][c]++;
+    }
+  }
+  let sum = 0;
+  for (const row of grid) {
+    for (const item of row) {
+      if (item % 2) sum++;
+    }
+  }
+  return sum;
+};
+var oddCells2 = function (m, n, indices) {
+  // 仅用两个数组统计：每行、每列被累加的次数
+  const row = new Array(m).fill(0);
+  const col = new Array(n).fill(0);
+
+  // 统计次数
+  for (const [r, c] of indices) {
+    row[r]++;
+    col[c]++;
+  }
+
+  // 计算：有多少行是 奇数次数，多少列是 奇数次数
+  let rowOdd = 0,
+    colOdd = 0;
+  for (const x of row) x % 2 !== 0 && rowOdd++;
+  for (const x of col) x % 2 !== 0 && colOdd++;
+
+  // 数学公式：奇数 = 行奇*列偶 + 行偶*列奇
+  return rowOdd * (n - colOdd) + (m - rowOdd) * colOdd;
+};
