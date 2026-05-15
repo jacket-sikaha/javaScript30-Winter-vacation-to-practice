@@ -2798,3 +2798,185 @@ var oddCells2 = function (m, n, indices) {
   // 数学公式：奇数 = 行奇*列偶 + 行偶*列奇
   return rowOdd * (n - colOdd) + (m - rowOdd) * colOdd;
 };
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var specialArray = function (nums) {
+  // 1. 升序排序
+  nums.sort((a, b) => a - b);
+  const n = nums.length;
+
+  // 2. 遍历所有可能的x
+  for (let x = 1; x <= n; x++) {
+    // 排序后，找到第一个 >=x 的位置，后面所有数都 >=x
+    // 数量 = 总长度 - 下标
+    let cnt = n - nums.findIndex((num) => num >= x);
+    if (cnt === x) return x;
+  }
+  return -1;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var numIdenticalPairs = function (nums) {
+  let sum = 0;
+  for (let i = 0; i < nums.length; i++) {
+    const a = nums[i];
+    for (let j = i + 1; j < nums.length; j++) {
+      const b = nums[j];
+      if (a === b) sum++;
+    }
+  }
+  return sum;
+};
+/**
+ *
+ * pref
+ * 核心原理
+ * 如果一个数字出现了 k 次，
+ * 那么它能组成的好数对数量 = k*(k-1)/2例：数字 2 出现 3 次 → 3*2/2 = 3 对
+ * @param {*} nums
+ * @return {*}
+ */
+var numIdenticalPairs2 = function (nums) {
+  const map = {};
+  let res = 0;
+  for (const num of nums) {
+    // 如 你是第 4 个 1，前面已经有 3 个 1 了 → 你能和前面 3 个 1 组成 3 对
+    // 累加已存在的相同数字的数量
+    res += map[num] || 0;
+    // 统计当前数字出现次数
+    map[num] = (map[num] || 0) + 1;
+  }
+  return res;
+};
+
+/**
+ * @param {string[]} words
+ * @return {string[]}
+ */
+var stringMatching = function (words) {
+  // 1. 按长度升序排序（你的核心思路，保留）
+  const list = words.sort((a, b) => a.length - b.length);
+  // 2. 过滤：只保留【被更长字符串包含】的串
+  return list.filter((str) => {
+    // 关键修复：只看 更长的字符串 是否包含当前 str
+    return list.some((o) => o.length > str.length && o.includes(str));
+  });
+};
+
+/**
+ * @param {number[]} arr
+ * @param {number[][]} pieces
+ * @return {boolean}
+ */
+var canFormArray = function (arr, pieces) {
+  // 1. 存arr每个数字的索引：O(n)
+  const map = new Map(arr.map((n, i) => [n, i]));
+
+  // 2. 遍历每一个碎片
+  for (let i = 0; i < pieces.length; i++) {
+    const element = pieces[i];
+    // 取碎片第一个数字的索引，不存在直接返回false
+    let idx = map.get(element[0]);
+    if (idx === undefined) return false;
+
+    // 3. 校验碎片里的数字，在arr中必须连续
+    for (let j = 1; j < element.length; j++) {
+      // 下一个数字的索引 - 当前索引 === 1 ✅
+      if (map.get(element[j]) - idx !== 1) {
+        return false;
+      }
+      // 更新索引，继续校验下一个
+      idx = map.get(element[j]);
+    }
+  }
+  // 所有碎片都校验通过，完美匹配
+  return true;
+};
+
+/**
+ * @param {number[][]} mat
+ * @return {number}
+ */
+var numSpecial = function (mat) {
+  const m = mat.length;
+  const n = mat[0].length;
+  // 1. 预处理：统计每一行的和
+  const rowSum = new Array(m).fill(0);
+  // 2. 预处理：统计每一列的和
+  const colSum = new Array(n).fill(0);
+
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
+      rowSum[i] += mat[i][j];
+      colSum[j] += mat[i][j];
+    }
+  }
+
+  let res = 0;
+  // 3. 一次遍历，直接判断
+  for (let i = 0; i < m; i++) {
+    if (rowSum[i] === 1) {
+      for (let j = 0; j < n; j++) {
+        if (mat[i][j] === 1 && colSum[j] === 1) {
+          res++;
+        }
+      }
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {number}
+ */
+var trimMean = function (arr) {
+  arr.sort((a, b) => a - b);
+  let tmp = Math.ceil(arr.length * 0.05);
+  let sum = 0;
+  for (let i = tmp; i < arr.length - tmp; i++) {
+    sum += arr[i];
+  }
+  return sum / (arr.length - 2 * tmp);
+};
+
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var getMaximumGenerated = function (n) {
+  if (n <= 1) {
+    return n;
+  }
+  const nums = [0, 1];
+  let i = 1;
+  while (nums.length < n + 1) {
+    if (2 * i >= 2 && 2 * i <= n) {
+      nums[2 * i] = nums[i];
+    }
+    if (nums.length === n + 1) {
+      break;
+    }
+    if (2 * i + 1 >= 2 && 2 * i + 1 <= n) {
+      nums[2 * i + 1] = nums[i] + nums[i + 1];
+    }
+    i++;
+  }
+  return Math.max(...nums);
+};
+// nums[0] = 0
+//   nums[1] = 1
+//   nums[(1 * 2) = 2] = nums[1] = 1
+//   nums[(1 * 2) + 1 = 3] = nums[1] + nums[2] = 1 + 1 = 2
+//   nums[(2 * 2) = 4] = nums[2] = 1
+//   nums[(2 * 2) + 1 = 5] = nums[2] + nums[3] = 1 + 2 = 3
+//   nums[(3 * 2) = 6] = nums[3] = 2
+//   nums[(3 * 2) + 1 = 7] = nums[3] + nums[4] = 2 + 1 = 3
+//    nums[(4 * 2) = 6] = nums[4] = 1
+// 因此，nums = [0,1,1,2,1,3,2,3]，最大值 3
