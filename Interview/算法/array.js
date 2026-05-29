@@ -2970,13 +2970,401 @@ var getMaximumGenerated = function (n) {
   }
   return Math.max(...nums);
 };
-// nums[0] = 0
-//   nums[1] = 1
-//   nums[(1 * 2) = 2] = nums[1] = 1
-//   nums[(1 * 2) + 1 = 3] = nums[1] + nums[2] = 1 + 1 = 2
-//   nums[(2 * 2) = 4] = nums[2] = 1
-//   nums[(2 * 2) + 1 = 5] = nums[2] + nums[3] = 1 + 2 = 3
-//   nums[(3 * 2) = 6] = nums[3] = 2
-//   nums[(3 * 2) + 1 = 7] = nums[3] + nums[4] = 2 + 1 = 3
-//    nums[(4 * 2) = 6] = nums[4] = 1
-// 因此，nums = [0,1,1,2,1,3,2,3]，最大值 3
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var minSubsequence = function (nums) {
+  nums.sort((a, b) => b - a);
+  let sum = nums.reduce((a, b) => a + b);
+  let tmp = 0;
+  const res = [];
+  for (let i = 0; i < nums.length; i++) {
+    sum -= nums[i];
+    tmp += nums[i];
+    res.push(nums[i]);
+    if (tmp > sum) {
+      return res;
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} nums
+ * @param {number} target
+ * @param {number} start
+ * @return {number}
+ */
+var getMinDistance = function (nums, target, start) {
+  let res = nums.length;
+  for (let i = 0; i < nums.length; i++) {
+    const element = nums[i];
+    if (element === target) {
+      res = Math.min(res, Math.abs(i - start));
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var maxAscendingSum = function (nums) {
+  let last = nums[0];
+  let tmp = last;
+  let max = last;
+  for (let i = 1; i < nums.length; i++) {
+    if (nums[i] - last <= 0) {
+      max = Math.max(max, tmp);
+      tmp = nums[i];
+    } else {
+      tmp += nums[i];
+    }
+    last = nums[i];
+  }
+  return Math.max(max, tmp);
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var smallerNumbersThanCurrent = function (nums) {
+  const tmp = nums.slice().sort((a, b) => a - b);
+  return nums.map((n) => tmp.indexOf(n));
+};
+
+/**
+ * @param {number[][]} grid
+ * @return {number}
+ */
+var countNegatives = function (grid) {
+  let sum = 0;
+  for (let j = 0; j < grid.length; j++) {
+    let idx = grid[j].findIndex((n) => n < 0);
+    if (idx === -1) continue;
+    sum += grid[j].length - idx;
+  }
+  return sum;
+};
+
+/**
+ * @param {number[][]} mat
+ * @param {number} k
+ * @return {number[]}
+ */
+var kWeakestRows = function (mat, k) {
+  const map = [];
+  for (let i = 0; i < mat.length; i++) {
+    let sum = 0;
+    for (const element of mat[i]) {
+      if (element) sum++;
+      if (!element) break;
+    }
+    map.push([i, sum]);
+  }
+  return map
+    .sort((a, b) => {
+      if (a[1] === b[1]) {
+        return a[0] - b[0];
+      }
+      return a[1] - b[1];
+    })
+    .slice(0, k)
+    .map((n) => n[0]);
+};
+
+/**
+ * @param {number[]} target
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var canBeEqual = function (target, arr) {
+  target.sort((a, b) => a - b);
+  arr.sort((a, b) => a - b);
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] !== target[i]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+var canBeEqual1 = function (target, arr) {
+  const map = {};
+  // 统计 target 元素频率 最快
+  for (const num of target) map[num] = (map[num] || 0) + 1;
+  // 抵消 arr 元素频率
+  for (const num of arr) {
+    if (!map[num]) return false;
+    map[num]--;
+  }
+  return true;
+};
+
+/**
+ * @param {string[]} word1
+ * @param {string[]} word2
+ * @return {boolean}
+ */
+var arrayStringsAreEqual = function (word1, word2) {
+  let a = word1.reduce((a, b) => a + b);
+  let b = word2.reduce((a, b) => a + b);
+  return a === b;
+};
+
+/**
+ * @param {number[]} code
+ * @param {number} k
+ * @return {number[]}
+ */
+var decrypt = function (code, k) {
+  if (k === 0) return new Array(code.length).fill(0);
+  const res = [];
+  if (k > 0) {
+    for (let i = 0; i < code.length; i++) {
+      let sum = 0;
+      for (let j = 1; j <= k; j++) {
+        if (i + j >= code.length) {
+          sum += code[i + j - code.length];
+        } else {
+          sum += code[i + j];
+        }
+      }
+      res.push(sum);
+    }
+  } else {
+    for (let i = 0; i < code.length; i++) {
+      let sum = 0;
+      for (let j = 1; j <= -k; j++) {
+        if (i - j < 0) {
+          sum += code[i - j + code.length];
+        } else {
+          sum += code[i - j];
+        }
+      }
+      res.push(sum);
+    }
+  }
+  return res;
+};
+/**
+ * pref
+ * @param {number[]} code
+ * @param {number} k
+ * @return {number[]}
+ */
+var decrypt2 = function (code, k) {
+  const n = code.length;
+  const res = new Array(n).fill(0);
+  if (k === 0) return res;
+
+  let sum = 0;
+  const absK = Math.abs(k);
+  // 先计算初始窗口的和
+  for (let i = 0; i < absK; i++) {
+    sum += k > 0 ? code[i + 1] : code[n - 1 - i];
+  }
+
+  // 滑动窗口遍历，单次循环搞定
+  for (let i = 0; i < n; i++) {
+    res[i] = sum;
+    // 滑动窗口：移除旧元素，加入新元素
+    if (k > 0) {
+      sum -= code[(i + 1) % n];
+      sum += code[(i + 1 + absK) % n];
+    } else {
+      sum -= code[(n + i - absK) % n];
+      sum += code[i];
+    }
+  }
+  return res;
+};
+
+/**
+ * @param {number[][]} mat
+ * @param {number[][]} target
+ * @return {boolean}
+ */
+var findRotation = function (mat, target) {
+  const rotateRight = (mat) => {
+    const result = [];
+
+    for (let i = 0; i < mat[0].length; i++) {
+      const row = [];
+      for (let j = mat.length - 1; j >= 0; j--) {
+        row.push(mat[j][i]);
+      }
+      result.push(row);
+    }
+    return result;
+  };
+  for (let i = 0; i < 4; i++) {
+    if (mat.toString() === target.toString()) {
+      return true;
+    }
+    mat = rotateRight(mat);
+  }
+  return false;
+};
+
+/**
+ * @param {number[]} students
+ * @param {number[]} sandwiches
+ * @return {number}
+ */
+var countStudents = function (students, sandwiches) {
+  // 统计0 1 次数
+  let sum1 = 0;
+  let sum0 = 0;
+  for (const element of students) {
+    if (element) {
+      sum1++;
+    } else {
+      sum0++;
+    }
+  }
+  for (const element of sandwiches) {
+    // 次数够分（>0）就能减，不然就直接退出
+    // 因为sandwiches是栈，无法调整顺序，只要有一个不够分后面都拿不到
+    if (element) {
+      if (sum1 <= 0) {
+        break;
+      }
+      sum1--;
+    } else {
+      if (sum0 <= 0) {
+        break;
+      }
+      sum0--;
+    }
+  }
+  return sum1 + sum0;
+};
+
+/**
+ * @param {number[][]} grid
+ * @return {number}
+ */
+var islandPerimeter = function (grid) {
+  let sum = 0;
+  let repeat = 0;
+  for (let i = 0; i < grid.length; i++) {
+    const element = grid[i];
+    for (let j = 0; j < element.length; j++) {
+      if (grid[i][j] === 1) {
+        sum++;
+        if (grid[i + 1] && grid[i + 1][j] === 1) repeat++;
+        if (grid[i] && grid[i][j + 1] === 1) repeat++;
+      }
+    }
+  }
+  return 4 * sum - 2 * repeat;
+};
+
+/**
+ * @param {number[]} deck
+ * @return {boolean}
+ */
+var hasGroupsSizeX = function (deck) {
+  // x至少是2 所以长度只是2以上数组才有可能符合
+  if (deck.length < 2) {
+    return false;
+  }
+  const map = [];
+  for (const element of deck) {
+    map[element] = (map[element] || 0) + 1;
+  }
+  const newMM = map.filter((n) => !!n && n > 0);
+  let tmp = Math.min(...newMM);
+  if (tmp < 2) return false;
+  // 从2开始直到次数最小值开始找 他们的公约数 X
+  // 超过次数最小值 那必然有的数除不尽，即不够分
+  // 能被整除 就能 分成X的份数  如 6 9  就是3
+  for (let i = 2; i <= tmp; i++) {
+    let flag = newMM.every((n) => n % i === 0);
+    if (flag) return true;
+  }
+  return false;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var getConcatenation = function (nums) {
+  return nums.concat(...nums);
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number[]}
+ */
+var buildArray = function (nums) {
+  return nums.map((n, i) => nums[nums[i]]);
+};
+
+/**
+ * @param {string} s
+ * @param {string[]} words
+ * @return {boolean}
+ */
+var isPrefixString = function (s, words) {
+  let str = "";
+  for (let i = 0; i < words.length; i++) {
+    str += words[i];
+    if (str === s) return true;
+  }
+  return false;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var unequalTriplets = function (nums) {
+  let sum = 0;
+  for (let i = 0; i < nums.length; i++) {
+    const a = nums[i];
+    for (let j = i + 1; j < nums.length; j++) {
+      const b = nums[j];
+      if (a !== b) {
+        for (let z = j + 1; z < nums.length; z++) {
+          const c = nums[z];
+          if (a !== c && b !== c) sum++;
+        }
+      }
+    }
+  }
+  return sum;
+};
+
+/**
+ * pref
+ * @param {number[]} nums
+ * @return {number}
+ */
+var unequalTriplets1 = function (nums) {
+  //   O (n) 解法的核心公式
+  // 合法三元组数量 = 左边不同数字的数量 × 当前数字数量 × 右边不同数字的数量
+  // 左边能选多少个 × 中间选多少个 × 右边能选多少个
+  let count = {};
+  for (let num of nums) count[num] = (count[num] || 0) + 1;
+  let res = 0,
+    left = 0,
+    total = nums.length;
+
+  // 因为我们是按数字顺序遍历的：
+  // 左边数字 < 中间数字 < 右边数字
+  // 所以它们一定互不相同！
+  for (let key in count) {
+    let mid = count[key];
+    let right = total - left - mid;
+    res += left * mid * right;
+    left += mid;
+  }
+  return res;
+};
