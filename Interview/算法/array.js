@@ -3368,3 +3368,172 @@ var unequalTriplets1 = function (nums) {
   }
   return res;
 };
+
+/**
+ * @param {number[]} nums
+ * @param {number[]} index
+ * @return {number[]}
+ */
+var createTargetArray = function (nums, index) {
+  const res = new Array(nums.length).fill(0);
+  for (let i = 0; i < nums.length; i++) {
+    res.splice(index[i], 0, nums[i]);
+  }
+  return res.slice(0, nums.length);
+};
+
+/**
+ * @param {number[]} arr
+ * @return {number}
+ */
+var sumOddLengthSubarrays = function (arr) {
+  let sum = 0;
+  const n = arr.length;
+  for (let i = 0; i < n; i++) {
+    // 计算每个元素出现的次数
+    //     每个数字：算左边能选多少种 × 右边能选多少种
+    // 除以 2 = 这个数字在奇数长度子数组里的出现次数
+    // 数字 × 次数，全部相加 = 答案
+    const count = Math.floor(((i + 1) * (n - i) + 1) / 2);
+    sum += arr[i] * count;
+  }
+  return sum;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var arraySign = function (nums) {
+  const signFunc = (x) => (x > 0 ? 1 : x === 0 ? 0 : -1);
+  if (nums.length < 2) {
+    return signFunc(nums[0]);
+  }
+  const n = nums.indexOf(0) !== -1 ? 0 : nums.reduce((a, b) => a * b);
+  return signFunc(n);
+};
+
+/**
+ * @param {string} s
+ * @param {number} k
+ * @return {string}
+ */
+var truncateSentence = function (s, k) {
+  return s.split(" ").slice(0, k).join(" ");
+};
+
+/**
+ * @param {number[][]} ranges
+ * @param {number} left
+ * @param {number} right
+ * @return {boolean}
+ */
+var isCovered = function (ranges, left, right) {
+  const step = new Array(50).fill(0);
+  for (const [s, e] of ranges) {
+    for (let i = s; i <= e; i++) {
+      step[i - 1] = 1;
+    }
+  }
+
+  return step.slice(left - 1, right).every((n) => n === 1);
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var countQuadruplets = function (nums) {
+  let sum = 0;
+  const n = nums.length;
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      for (let k = j + 1; k < n; k++) {
+        for (let z = k + 1; z < n; z++) {
+          if (nums[i] + nums[j] + nums[k] === nums[z]) sum++;
+        }
+      }
+    }
+  }
+  return sum;
+};
+
+/**
+ * @param {number[]} arr
+ * @return {boolean}
+ */
+var threeConsecutiveOdds = function (arr) {
+  if (arr.length < 3) {
+    return false;
+  }
+  let sum = 0;
+  for (const element of arr) {
+    if (element % 2 === 0) {
+      sum = 0;
+    } else {
+      sum++;
+    }
+    if (sum === 3) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/**
+ * @param {number[]} nums
+ * @param {number} k
+ * @return {number}
+ */
+var minimumDifference = function (nums, k) {
+  if (nums.length <= 1) {
+    return 0;
+  }
+  nums.sort((a, b) => a - b);
+  let min = nums[nums.length - 1];
+  for (let i = 0; i <= nums.length - k; i++) {
+    min = Math.min(min, nums[i + k - 1] - nums[i]);
+  }
+  return min;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var countElements = function (nums) {
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  let sum = 0;
+  for (let i = 0; i < nums.length; i++) {
+    const element = nums[i];
+    if (element !== min || element !== max) sum++;
+  }
+  return sum;
+};
+
+/**
+ * @param {number[]} nums
+ * @return {boolean}
+ */
+var canJump = function (nums) {
+  let maxReach = 0; // 当前能跳到的最远下标
+  const n = nums.length;
+
+  for (let i = 0; i < n; i++) {
+    // 如果当前位置已经超出了能到达的最远范围，说明被卡住了
+    if (i > maxReach) {
+      return false;
+    }
+
+    // 更新最远可达距离：比较当前位置能跳到的位置 和 之前记录的最远位置
+    maxReach = Math.max(maxReach, i + nums[i]);
+
+    // 如果最远距离已经覆盖了最后一个下标，提前返回 true（小优化）
+    if (maxReach >= n - 1) {
+      return true;
+    }
+  }
+
+  return true;
+};
