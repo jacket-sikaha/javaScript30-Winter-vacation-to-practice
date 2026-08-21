@@ -99,6 +99,23 @@ const debounce = (fn = () => {}, wait) => {
   };
   myFn.cancel = () => {
     clearTimeout(timer);
+    timer = null;
   };
   return myFn;
+};
+
+const throttle = (fn = () => {}, wait) => {
+  let timer = null;
+  function _throle(...args) {
+    if (timer) return;
+    timer = setTimeout(() => {
+      fn.apply(this, args);
+      timer = null;
+    }, wait);
+  }
+  _throle.cancel = () => {
+    clearTimeout(timer);
+    timer = null;
+  };
+  return _throle;
 };
