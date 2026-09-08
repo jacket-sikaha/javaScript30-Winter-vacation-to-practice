@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>React 知识思维导图 · 快速串联版</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f8f9fa; }
+  .markmap { width: 100%; height: 100%; }
+  .markmap > svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="markmap">
+<script type="text/template">
+---
+markmap:
+  colorFreezeLevel: 3
+  maxWidth: 350
+  initialExpandLevel: 3
+---
+
+# 🧠 React 核心知识 · 快速串联版
+
+## ⭐⭐ 状态机制核心链
+
+### 🔥 State Snapshot（状态快照）
+- 🔥 state 是一次 render 的快照
+- setState **不会立即**修改当前 render 的 state
+- ⭐ → **排队 + 批量处理**
+  - 避免多次 render，提高性能
+  - 保证一次 render 内数据一致
+
+### ↓ 闭包捕获对应 render 的 state
+
+### Stale Closure（过期闭包）
+- 异步 callback 拿到的可能是**旧值**
+- ⭐ 解法：**Updater Function**（函数式更新）
+  - `setCount(prev => prev + 1)` 避免依赖旧 snapshot
+
+### ↓ Update Queue → Batching
+
+### ↓ Render → Commit → Fiber
+- 🔥 Fiber 把 Render 拆小 + 优先级调度 = **可中断渲染**
+
+## ⭐⭐ useEffect / useLayoutEffect 体系
+
+### 🔥 Render/Commit 完整生命周期（含 Hooks 时机）
+- Render
+- ↓
+- Commit：DOM 更新
+- ↓
+- **useLayoutEffect**（Paint 之前）
+- ↓
+- 浏览器 Paint
+- ↓
+- **useEffect**（Paint 之后）
+
+### useLayoutEffect vs useEffect
+- ⭐ useLayoutEffect：DOM 更新后、**Paint 前**，可读/改 DOM 避免闪烁
+- useEffect：**Paint 后**，非阻塞副作用
+- 🔥 为什么不全部用 useLayoutEffect？
+  - 它会**阻塞浏览器绘制**，耗时操作延迟 Paint → 影响性能
+  - 只有涉及 **DOM 测量 + 同步调整 + 避免视觉闪烁**时才用
+
+### 🔥 依赖决定何时重新同步
+- Effect 在 commit **之后**的独立阶段运行，与 UI 计算解耦
+
+### Effect 职责：同步外部系统
+- API · DOM · Timer · Subscription
+
+### cleanup 本质
+- ⭐ 清理**上一次**与外部系统建立的同步关系
+- 避免资源泄漏、重复订阅、旧逻辑继续运行
+
+### 完整思维模型
+- setup → 同步 → 变化 → cleanup → 重新 setup
+
+### ⭐ useEffect 不能声明为 async
+- 返回值**专用**于 cleanup，async 返回 Promise 会破坏机制
+
+## 🔥 Fiber 与可中断渲染
+
+### 传统递归更新的痛点
+- 同步执行 → 任务太重 → 长时间占用 JS 主线程
+- 用户输入、动画无法及时响应
+
+### 🔥 Fiber 核心价值
+- 把**不可中断的递归工作** → 拆分、暂停、恢复的工作单元
+- 执行一部分 → 发现需要让出 → 暂停 → 浏览器处理紧急事 → 继续渲染
+
+### 完整调度链路（含 Work-in-Progress Tree）
+- setState → 产生更新
+- React 调度 → Render/Reconciliation
+- Fiber Diff → 构建 **Work-in-Progress Tree**
+- 确定需要哪些 DOM 更新 → Commit → 应用到真实 DOM
+
+### Fiber 意义
+- 让 Render 阶段工作能被**拆分、暂停、恢复甚至丢弃重做**
+- 支持并发调度
+
+### 完整知识链
+- Virtual DOM → Diff/Reconciliation → Fiber → Commit → 改 DOM
+
+### 🔥 一句话面试版
+- Fiber 解决**大型组件树同步渲染阻塞主线程**问题
+- 把渲染工作拆成可调度的工作单元，按优先级中断/重启/继续
+
+### startTransition
+- Fiber = 底层架构能力
+- startTransition = 开发者可用的调度能力之一
+
+## 🔥 渲染触发与优化
+
+### 组件 render 的 5 个原因
+- 自己的 state 更新
+- 父组件 render（**即使 props 没变**）
+- props 变化
+- Context value 变化
+- 其他 React 更新机制
+
+### React.memo
+- ✅ props 没变 → 可跳过
+- ❌ 自己 state 变 → 挡不住
+- ❌ useContext 的 value 变 → 挡不住
+
+### 🔥 Context 优化四层手段
+- ① `useMemo` 稳定 Provider value
+- ② **拆分 Context**（按业务职责）
+- ③ **缩小 Consumer 范围**（抽小组件消费）
+- ④ 引入 Zustand / Redux selector
+
+### 排查工具
+- React DevTools **Profiler** 确认不必要的 render
+
+## ⭐ 高频面试考点
+
+### 🔥 key：identity 优先于性能
+- 核心是识别列表元素的**稳定身份**，正确 reconciliation
+- ⭐ **身份才是核心，性能只是结果之一**
+- ❌ 不能用 index 当 key → 插入/删除/排序时 state 错位
+
+### 🔥 不可变更新两个核心原因
+- ① 方便 React **引用判断**数据是否变化（`oldUser !== newUser`）
+- ② 性能优化基石（memo / useMemo / Context 都依赖引用稳定）
+
+### useState vs useRef
+- **state** → 驱动 UI（变化触发 render，产生新 snapshot）
+- **ref** → 不驱动 UI 的可变数据（`ref.current` 取最新值，不触发 render）
+
+### Hooks 规则本质
+- 不放在条件/循环/嵌套函数
+- → 保证每次 render 的 **Hook 调用顺序稳定**
+
+### 受控组件
+- 何时受控：实时校验 / 格式化 / 动态 UI / 按钮 disabled / 共享表单值
+- 50 个字段全受控不一定有性能问题 → 看 render 范围和成本
+
+### ⭐ StrictMode：开发期检查机制
+- 🔥 **仅开发环境**，生产环境不重复执行
+- 额外 re-render → 发现不纯渲染 bug
+- 额外 re-run Effect → 发现 cleanup 缺失
+- 额外 re-run ref callback → 发现 ref cleanup 缺失
+- 检查已废弃 API 用法
+
+## 📋 场景决策速查表
+
+### 根据 props/state 计算简单数据 → 直接计算
+### 计算昂贵数据 → `useMemo`
+### 需要同步外部系统 → `useEffect`
+### 结果不应独立存在 → ❌ 不要 `useState`
+
+## Context vs Zustand 速记
+
+### Context
+- 跨层级传递数据
+- 通常需要 Provider
+- 订阅粒度相对粗
+- 简单全局配置 → ✅ 很合适
+
+### Zustand
+- 共享状态管理
+- 通常不需要 Provider
+- selector 细粒度订阅
+- 高频复杂状态 → ✅ 更适合
+
+## 💡 记忆口诀
+
+### state 是 snapshot，setState 是排队
+### 闭包易过期，updater 来解决
+### layout 在 Paint 前，effect 在 Paint 后
+### cleanup 清旧关系，返回值不能是 async
+### memo 挡 props，挡不住 context
+### 优化四层：稳定 value → 拆分 → 缩范围 → selector
+### key 是身份不是速度
+### 不可变更新是性能基石
+### Fiber 把递归变可中断，StrictMode 开发期抓 bug
+</script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.18.0"></script>
+</body>
+</html>

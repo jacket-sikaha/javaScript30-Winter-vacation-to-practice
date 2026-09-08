@@ -8,5 +8,6 @@
   "trae.tab.cue": false,
   "trae.tab.enableRename": false,
   "trae.tab.enableAutoImport": false,
-  "trae.tab.enableTabKeyboardShortcuts": false
+  "trae.tab.enableTabKeyboardShortcuts": false,
+  "livePreview.defaultPreviewPath": "/interview/前端知识/react/mindmap-快速串联版.html"
 }
