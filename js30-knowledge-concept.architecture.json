@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "JavaScript30 知识点串联概念图",
+    "quality_profile": "showcase",
+    "viewBox": [1320, 680],
+    "views": [
+      { "id": "event-driven", "label": "事件驱动主线", "focus": ["domevent", "classlist", "eventmech", "cssanim"], "note": "keydown/keyup、鼠标、scroll 三类事件是 JS30 最核心的触发源,classList 是事件到样式的最短桥。" },
+      { "id": "data-flow", "label": "数据获取与存储", "focus": ["array", "regex", "fetchdata", "localstorage"], "note": "fetch 取数 → 正则过滤 → 数组渲染 → LocalStorage 持久化的完整数据链。" },
+      { "id": "presentation", "label": "表现层复用", "focus": ["cssvar", "cssanim", "flex", "canvas", "media"], "note": "CSS 变量、动画、flex、Canvas、媒体 API 如何被事件层反复驱动。" }
+    ]
+  },
+  "components": [
+    { "id": "eventmech", "type": "frontend", "label": "事件机制", "sublabel": "冒泡·捕获·transitionend", "pos": [80, 300], "size": [180, 80], "tag": "Day 05·25" },
+    { "id": "domevent", "type": "frontend", "label": "DOM 事件监听", "sublabel": "keydown/keyup·mouse·scroll", "pos": [320, 300], "size": [180, 80], "tag": "Day 01·06·08·11·12·13·16·22·24" },
+    { "id": "classlist", "type": "frontend", "label": "classList 操作", "sublabel": "add/remove/toggle", "pos": [560, 300], "size": [180, 80], "tag": "Day 01·05·13·24" },
+
+    { "id": "cssvar", "type": "frontend", "label": "CSS 变量", "sublabel": ":root·setProperty", "pos": [80, 100], "size": [180, 80], "tag": "Day 03" },
+    { "id": "cssanim", "type": "frontend", "label": "CSS 动画", "sublabel": "transform·keyframes", "pos": [320, 100], "size": [180, 80], "tag": "Day 01·02·16" },
+    { "id": "flex", "type": "frontend", "label": "flex 布局", "sublabel": "flex-grow·flex-basis", "pos": [560, 100], "size": [180, 80], "tag": "Day 05·11" },
+    { "id": "canvas", "type": "external", "label": "Canvas API", "sublabel": "2d·strokeStyle", "pos": [800, 100], "size": [180, 80], "tag": "Day 08" },
+    { "id": "media", "type": "external", "label": "媒体 API", "sublabel": "audio·video·语音", "pos": [1040, 100], "size": [180, 80], "tag": "Day 01·11·19·23" },
+
+    { "id": "array", "type": "backend", "label": "Array 数组方法", "sublabel": "map·filter·reduce·slice", "pos": [320, 540], "size": [180, 80], "tag": "Day 04·06·07·10·14·15·17·18" },
+    { "id": "regex", "type": "backend", "label": "正则与字符串", "sublabel": "RegExp·match·replace", "pos": [560, 540], "size": [180, 80], "tag": "Day 06·12·17" },
+    { "id": "fetchdata", "type": "database", "label": "fetch / XHR", "sublabel": "Promise·JSON.parse", "pos": [800, 540], "size": [180, 80], "tag": "Day 06" },
+    { "id": "localstorage", "type": "database", "label": "LocalStorage", "sublabel": "JSON 持久化", "pos": [1040, 540], "size": [180, 80], "tag": "Day 15" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "表现与 API 层", "wraps": ["cssvar", "cssanim", "flex", "canvas", "media"] },
+    { "kind": "region", "label": "事件驱动层", "wraps": ["eventmech", "domevent", "classlist"] },
+    { "kind": "region", "label": "数据与逻辑层", "wraps": ["array", "regex", "fetchdata", "localstorage"] }
+  ],
+  "connections": [
+    { "id": "evt-to-class", "from": "domevent", "to": "classlist", "label": "事件触发样式", "labelAt": [440, 270] },
+    { "id": "evt-to-mech", "from": "domevent", "to": "eventmech", "label": "冒泡/捕获", "labelAt": [190, 270] },
+    { "id": "mech-to-anim", "from": "eventmech", "to": "cssanim", "label": "transitionend", "labelAt": [170, 210] },
+    { "id": "class-to-anim", "from": "classlist", "to": "cssanim", "label": "切换动画类", "labelAt": [510, 210] },
+    { "id": "evt-to-array", "from": "domevent", "to": "array", "label": "keyup→filter", "labelAt": [410, 420] },
+    { "id": "array-to-regex", "from": "array", "to": "regex", "label": "filter 配合正则", "labelAt": [510, 510] },
+    { "id": "regex-to-fetch", "from": "regex", "to": "fetchdata", "label": "过滤结果", "labelAt": [750, 510] },
+    { "id": "fetch-to-storage", "from": "fetchdata", "to": "localstorage", "label": "JSON 存储", "labelAt": [990, 510] },
+    { "id": "storage-to-array", "from": "localstorage", "to": "array", "label": "读取渲染", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "via": [[1130, 660], [410, 660]], "labelAt": [770, 640] },
+    { "id": "cssvar-to-anim", "from": "cssvar", "to": "cssanim", "label": "var() 联动", "labelAt": [270, 70] },
+    { "id": "anim-to-flex", "from": "cssanim", "to": "flex", "label": "布局动画", "labelAt": [510, 70] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "事件驱动层", "items": ["keydown/keyup、mouse、scroll 三类事件贯穿 9 个练习", "classList 的 add/remove/toggle 是事件到样式最短路径", "transitionend 监听让动画按序衔接"] },
+    { "dot": "emerald", "title": "数据与逻辑层", "items": ["map/filter/reduce 出现在 8 个练习,复用率最高", "正则与数组 filter 配合实现实时搜索", "fetch → 正则 → 数组 → LocalStorage 构成完整数据链"] },
+    { "dot": "violet", "title": "表现与 API 层", "items": ["CSS 变量让 JS 一行改全局样式", "transform/animation 被 6 个练习反复使用", "Canvas、audio/video、语音 API 拓展到浏览器原生能力", "事件层还直接驱动 flex(Day05)、Canvas(Day08)、media(Day01·11)"] }
+  ]
+}
