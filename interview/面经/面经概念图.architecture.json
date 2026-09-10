@@ -4,15 +4,16 @@
   "meta": {
     "title": "前端面经知识网络图",
     "quality_profile": "showcase",
-    "viewBox": [1280, 760]
+    "viewBox": [1280, 760],
+    "legend": { "mode": "hidden" }
   },
   "components": [
     { "id": "jscore", "type": "frontend", "label": "JavaScript 核心", "sublabel": "闭包·作用域链·原型链·继承·this·new", "pos": [60, 320], "size": [180, 80] },
-    { "id": "react", "type": "backend", "label": "React 与框架", "sublabel": "Hooks·key·受控组件·路由·React vs Vue", "pos": [340, 320], "size": [180, 80] },
-    { "id": "build", "type": "cloud", "label": "构建工程化", "sublabel": "Vite·Webpack·Tree Shaking·Babel·pnpm", "pos": [620, 150], "size": [180, 80] },
-    { "id": "network", "type": "external", "label": "网络与系统", "sublabel": "HTTP·TCP/UDP·跨域·预检·七层·进程", "pos": [620, 490], "size": [180, 80] },
+    { "id": "react", "type": "frontend", "label": "React 与框架", "sublabel": "Hooks·key·受控组件·路由·React vs Vue", "pos": [340, 320], "size": [180, 80] },
+    { "id": "build", "type": "frontend", "label": "构建工程化", "sublabel": "Vite·Webpack·Tree Shaking·Babel·pnpm", "pos": [620, 150], "size": [180, 80] },
+    { "id": "network", "type": "frontend", "label": "网络与系统", "sublabel": "HTTP·TCP/UDP·跨域·预检·七层·进程", "pos": [620, 490], "size": [180, 80] },
     { "id": "browser", "type": "frontend", "label": "浏览器渲染", "sublabel": "渲染·缓存·BFC·性能优化·Cookie·SSR", "pos": [900, 320], "size": [180, 80] },
-    { "id": "advanced", "type": "database", "label": "前端进阶", "sublabel": "懒加载·虚拟列表·Ajax·存储", "pos": [1130, 320], "size": [130, 80] }
+    { "id": "advanced", "type": "frontend", "label": "前端进阶", "sublabel": "懒加载·虚拟列表·Ajax·存储", "pos": [1130, 320], "size": [130, 80] }
   ],
   "boundaries": [],
   "connections": [
