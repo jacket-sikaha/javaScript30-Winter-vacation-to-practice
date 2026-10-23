@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript 核心 · 快速串联版思维导图</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f8f9fa; }
+  .markmap { width: 100%; height: 100%; }
+  .markmap > svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="markmap">
+<script type="text/template">
+---
+markmap:
+  colorFreezeLevel: 3
+  maxWidth: 380
+  initialExpandLevel: 3
+---
+
+# 🧠 JS 核心 · 快速串联版
+
+## ⭐⭐⭐ Promise 状态决胜链（9-28 主线）
+
+### 🔥 thenable 吸收（面试高频）
+- obj → 有可调用的 `then`？
+- ⭐ 有 → 当作 thenable **吸收**
+- `obj.then(resolve)` → `resolve(100)`
+- → Promise fulfilled(100)
+- 💡 记忆：**有 then 就当 Promise 用**
+
+### 🔥 Promise.resolve 三种分支
+- `Promise.resolve(普通值)` → 新建 fulfilled Promise
+- `Promise.resolve(Promise)` → **直接返回**它（不新建）
+- `Promise.resolve(thenable)` → **采用**它的状态/结果
+- ⭐ 面试点：分清"直接返回" vs "采用状态"
+
+### 🔥 return Promise → 链式等待
+- `.then()` 回调 return 一个 Promise
+- ⭐ 外层 Promise **等它 settle**，并采用最终状态和值
+- return 普通值 → fulfilled → 继续执行 then
+- throw 异常 → rejected → **跳过后续 then**，找 catch
+
+## ⭐⭐⭐ finally 的四种结果（必背表）
+
+### 🔥 核心纠正
+- ⭐ finally **不是普通 then**，正常 return **不传给下一个 then**
+- 理解：*无论成功失败都执行的清理逻辑；正常情况不改变 Promise 结果*
+
+### 📋 结果对照表
+- 正常结束 / `return 100` → ⭐ **保留原状态和值**
+- `throw new Error()` → 变成 rejected(Error)
+- `return Promise.reject(...)` → 变成 rejected(...)
+- `return Promise.resolve(100)` → ⭐ **仍保留原状态和值**
+
+## ⭐⭐⭐ async / await 时序
+
+### 🔥 执行顺序
+- await **之前**的代码：同步执行
+- await **之后**的代码：在**后续微任务**中继续执行
+
+### 🔥 return vs return await
+- `return Promise.resolve(1)` → 直接返回
+- `return await Promise.resolve(2)` → ⭐ 多一层异步恢复过程
+- ⭐ 最终值/状态**通常相同**，差别在异常捕获
+
+### 🔥 try/catch 下的关键差异（易错）
+- 无 try/catch → 最终都让 async 返回 rejected Promise
+- ⭐ `return Promise.reject()` → **不被**当前 try/catch 捕获
+- ⭐ `return await Promise.reject()` → await 把 rejection **转成异常** → **能被**捕获
+
+## ⭐⭐⭐ 原型链体系（10-8 主线）
+
+### 🔥 完整链路（必背）
+- `new Person()` → 实例 p
+- p.__proto__ → `Person.prototype`
+- → `Object.prototype`
+- → `null`（终点）
+
+### 🔥 三个 __proto__ 别搞混
+- `Person.prototype` ← 构造函数的 **prototype 属性**
+- `p.__proto__` ← **实例**的原型
+- ⭐ `Person.__proto__` ← **函数对象自己**的原型 = `Function.prototype`
+
+### 🔥 new vs Object.create
+- `Object.create(proto)` → 创建对象，`[[Prototype]]` **直接指向 proto**
+- `new Person()` → 创建对象，`[[Prototype]]` → `Person.prototype`，⭐ **并执行构造函数**
+- ⭐ 一句话：Object.create 直接指定原型；new 用构造函数 prototype + 执行构造函数
+
+### 🔥 Object.create(null) 陷阱
+- ⭐ `[[Prototype]]` → null，**没有 Object.prototype 这一层**
+- 所以 `obj.toString` / `obj.hasOwnProperty` / `obj.valueOf` **全都没有**
+
+## ⭐⭐ bind 与 new（记忆版）
+
+### 🔥 一句话记法
+- bind 可以**预绑定 this**
+- ⭐ 但绑定后的函数被 **new 调用**时，new 会让 this 指向**新创建的实例**（bind 失效）
+
+## ⭐⭐⭐ ToPrimitive 转换（易错）
+
+### 🔥 hint 决定优先调用谁
+- `obj + 1` → hint **default** → `valueOf` → `toString`
+- `String(obj)` → hint **string** → `toString` → `valueOf`
+- `Number(obj)` → hint **number** → `valueOf` → `toString`
+
+### 🔥 完整优先级
+- 对象 → ToPrimitive
+- 有 `Symbol.toPrimitive`？→ ⭐ **直接调用它**
+- 没有 → 根据 hint 调 `valueOf` / `toString`
+
+### 🔥 obj + "1" 三段式
+- ① `obj → ToPrimitive → 10`
+- ② `10 + "1"`
+- ③ 发现有字符串 → **字符串拼接** → `"101"`
+- ⭐ 先完成 ToPrimitive，再看类型决定拼接/加法
+
+### ⚠️ 空数组陷阱
+- `[].valueOf() === []` → **false**（每次 `[]` 都是新数组）
+- `[].valueOf()` 返回**它自己**（数组对象）
+- ⭐ 真正变字符串的是 `[].toString()` → `""`
+
+## ⭐⭐⭐ == / === / Object.is 对照表
+
+### 🔥 null / undefined 规则（必背）
+- `null == undefined` → ⭐ **true**
+- `null == 其他` → **false**
+- `undefined == 其他` → **false**
+- （"其他"指常见 0、false、"" 等）
+
+### 📋 三等式对照
+- `NaN / NaN` → `==` **false** ｜ `===` **false** → `Object.is` ⭐ **true**
+- `0 / -0` → `==` **true** ｜ `===` **true** → `Object.is` ⭐ **false**
+- ⭐ 记忆：Object.is 专治这两个特例
+
+## ⭐⭐ 类型判断三件套
+
+### 🔥 三种方式分工
+- `typeof` → 判断**基本类型**，对对象区分能力有限
+- `instanceof` → 判断**原型链上是否存在**指定构造函数的 prototype
+- ⭐ `Object.prototype.toString.call()` → 可识别**多种内置对象类型**
+
+## 🎯 一句话面试版
+
+### 🔥 最高频三句
+- ⭐ **有 then 就当 Promise 吸收**
+- ⭐ **finally 正常结束不改变 Promise 结果**
+- ⭐ **return await 才能被 try/catch 捕获 rejection**
+</script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.18.0"></script>
+</body>
+</html>

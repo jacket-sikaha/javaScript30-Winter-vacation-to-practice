@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript 核心 · 完整版思维导图</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f8f9fa; }
+  .markmap { width: 100%; height: 100%; }
+  .markmap > svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="markmap">
+<script type="text/template">
+---
+markmap:
+  colorFreezeLevel: 2
+  maxWidth: 400
+  initialExpandLevel: 3
+---
+
+# 📘 JavaScript 核心 · 完整版
+
+## 一、Promise 与 thenable 吸收机制
+
+### 1.1 thenable 识别与吸收流程
+- 起点：`obj`
+- 判断：有没有**可调用的 then**？
+- 有 → 把它当作 **thenable** 进行「吸收」
+- 调用 `obj.then(resolve)`
+- 内部执行 `resolve(100)`
+- 结果：`Promise fulfilled(100)`
+- 一句话：**只要带可调用的 then，就被当成 Promise 来对待**
+
+### 1.2 Promise.resolve() 的三种分支
+- `Promise.resolve(普通值)`
+  - → 创建一个 **fulfilled** Promise
+- `Promise.resolve(Promise)`
+  - → **直接返回/采用它的状态**（不额外包装）
+- `Promise.resolve(thenable)`
+  - → **读取并调用它的 then 方法**
+  - → 根据其 resolve/reject 调用结果决定返回 Promise 的状态和值
+- 关键区分：**普通值 = 新建**；**Promise = 直接返回**；**thenable = 采用**
+
+### 1.3 .then() 中 return Promise 的行为
+- `.then()` 回调中 return 一个 Promise 时
+- → 外层 Promise 会**等待这个 Promise settle**
+- → 并**采用它的最终状态和值**
+- 效果：形成链式等待（Promise 链的串联基础）
+
+### 1.4 Promise 链的两条路径
+- **return 普通值** → fulfilled → 继续执行后续 then
+- **throw 异常** → rejected → **跳过后续 then**，寻找 catch
+- 记忆模型
+  - 正常路径：值往下传，then 依次执行
+  - 异常路径：直接跳到最近的错误处理
+
+## 二、finally 的特殊语义（重点纠正）
+
+### 2.1 核心纠正
+- ⚠️ **finally 不是普通的 then**
+- 它的**正常 return 不会把值传给下一个 then**
+- 正确理解：*无论成功失败都执行的清理逻辑；正常情况下不改变 Promise 结果*
+
+### 2.2 finally 结果对照表（必背）
+- **正常结束**
+  - → 保留原 Promise 的状态和值
+- **`return 100`**
+  - → 仍然保留原 Promise 的状态和值
+- **`throw new Error()`**
+  - → 变成 rejected(Error)
+- **`return Promise.reject(...)`**
+  - → 变成 rejected(...)
+- **`return Promise.resolve(100)`**
+  - → 仍然保留原状态和值
+
+### 2.3 规律总结
+- 只有**抛异常**或**返回 rejected Promise** 才会改变结果
+- 一切**正常返回值**（包括 fulfilled Promise）都不影响原状态
+- 用途：清理逻辑、埋点、关闭连接等副作用
+
+## 三、async / await 执行时序
+
+### 3.1 基本时序
+- **await 之前**的代码：**同步执行**
+- **await 之后**的代码：在**后续微任务**中继续执行
+- 本质：await 会暂停函数执行并让出主线程
+
+### 3.2 return vs return await
+
+```
+async function foo() {
+  return Promise.resolve(1);
+}
+
+async function bar() {
+  return await Promise.resolve(2);
+}
+```
+
+- 两者**最终值/状态通常相同**
+- 差别：`return await` **多了一个 await 的异步恢复过程**
+- 影响：多一层微任务调度
+
+### 3.3 try/catch 下的关键差异
+- **没有 try/catch 时**
+  - → 最终通常都会让 async 函数返回 **rejected Promise**
+- **放进 try { ... } catch {} 时**
+  - `return Promise.reject()` → **不会被当前 try/catch 捕获**
+  - `return await Promise.reject()` → **可以被当前 try/catch 捕获**
+- 原因链
+  - await 会把 rejection **转成异常**
+  - 异常才能被同步的 try/catch 捕获
+- 结论：需要在 async 函数内部捕获错误时，必须写 `return await`
+
+## 四、原型链体系
+
+### 4.1 完整原型链（必背）
+- `new Person()` → 实例 `p`
+- `p.__proto__` → `Person.prototype`
+- `Person.prototype.__proto__` → `Object.prototype`
+- `Object.prototype.__proto__` → **null**（查找终点）
+
+### 4.2 三个 __proto__ 的关系辨析
+- `Person.prototype`
+  - ← 构造函数的 **prototype 属性**
+- `p.__proto__`
+  - ← **实例**的原型
+- `Person.__proto__`
+  - ← **Person 这个函数对象自己的原型**
+  - 即 `Function.prototype`
+
+### 4.3 new 与 Object.create 的差异
+- `Object.create(proto)`
+  - 创建对象
+  - `[[Prototype]]` → proto
+  - **直接指定**新对象的原型
+- `new Person()`
+  - 创建对象
+  - `[[Prototype]]` → `Person.prototype`
+  - **执行 Person 构造函数**初始化对象
+- 精确表述：Object.create 直接指定新对象的原型；new 使用构造函数的 prototype 作为新对象的原型，**并执行构造函数**
+
+### 4.4 Object.create(null) 的特殊性
+- `const obj = Object.create(null)`
+- → `obj.__proto__` 为 **null**
+- → **没有 Object.prototype 这一层**
+- 后果
+  - `obj.toString` → 不存在
+  - `obj.hasOwnProperty` → 不存在
+  - `obj.valueOf` → 不存在
+  - 因为这些方法都来自 `Object.prototype`
+- 用途：需要纯粹字典对象（无原型污染）时使用
+
+### 4.5 bind 与 new 的交互
+- bind 可以**预绑定 this**
+- 但当绑定后的函数被 **new 调用**时
+- → **new 会让 this 指向新创建的实例**
+- 记忆：**new 的优先级高于 bind**
+
+## 五、ToPrimitive 类型转换
+
+### 5.1 hint 决定调用顺序
+- `obj + 1`（hint = **default**）
+  - 优先 `valueOf` → 再 `toString`
+- `String(obj)`（hint = **string**）
+  - 优先 `toString` → 再 `valueOf`
+- `Number(obj)`（hint = **number**）
+  - 优先 `valueOf` → 再 `toString`
+
+### 5.2 完整查找优先级
+- 对象 → `ToPrimitive`
+- 有 **`Symbol.toPrimitive`**？ → **直接调用它**（最高优先级）
+- 没有 → 根据 hint 调用 `valueOf` / `toString`
+
+### 5.3 `obj + "1"` 三段式执行
+- 第一阶段：`obj → ToPrimitive → 10`
+- 第二阶段：`10 + "1"`
+- 第三阶段：发现有字符串 → **字符串拼接**
+- 最终结果：`"101"`
+- 要点：**先完成对象的 ToPrimitive**，`+` 再根据得到的**原始值**决定是字符串拼接还是数字加法
+
+### 5.4 空数组陷阱
+- `[].valueOf() === []`
+  - → **false**（每次 `[]` 都是新数组，引用不同）
+- `[].valueOf()`
+  - → 返回**它自己**（数组对象 `[]`）
+- `[].toString()`
+  - → 真正让它变成字符串的方法
+  - → 结果 `""`
+
+## 六、相等性判断：== / === / Object.is
+
+### 6.1 null / undefined 的 == 规则（必背）
+- `null == undefined` → **true**
+- `null == 其他` → **false**
+- `undefined == 其他` → **false**
+- 这里的「其他」指常见的 `0`、`false`、`""` 等
+
+### 6.2 三种相等性对照表
+- `NaN` vs `NaN`
+  - `==` → false
+  - `===` → false
+  - `Object.is` → **true**
+- `0` vs `-0`
+  - `==` → true
+  - `===` → true
+  - `Object.is` → **false**
+- 记忆：`Object.is` 专门解决 NaN 自反、±0 区分两个特例
+
+## 七、类型判断三件套
+
+### 7.1 typeof
+- 判断**基本类型**
+- 对对象的区分能力有限
+- 已知缺陷：`typeof null === "object"`
+
+### 7.2 instanceof
+- 判断**对象的原型链上是否存在指定构造函数的原型**
+- 依赖原型链查找
+
+### 7.3 Object.prototype.toString.call()
+- 可以识别**多种内置对象类型**
+- 返回形如 `[object Array]` 的字符串
+- 最通用的类型判断方案
+
+## 八、面试速答框架
+
+### 8.1 Promise 三连
+- thenable 会被**吸收**为 Promise
+- `Promise.resolve(Promise)` **直接返回**，不新建
+- `.then` return Promise 会导致**外层等待**
+
+### 8.2 finally 一句话
+- **正常结束/正常 return 都不改变 Promise 结果**
+- 只有**抛异常**或**返回 rejected Promise** 才变成 rejected
+
+### 8.3 async/await 一句话
+- await 前**同步**，await 后**微任务**
+- 想用 try/catch 捕获 rejection → 必须 `return await`
+
+### 8.4 原型链一句话
+- 实例 `__proto__` → 构造函数 `prototype` → `Object.prototype` → `null`
+- `Object.create(null)` **没有原型链**
+
+### 8.5 转换与相等一句话
+- 先 `Symbol.toPrimitive`，再按 hint 选 `valueOf`/`toString`
+- `null == undefined` 为 true，其余为 false
+</script>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@0.18.0"></script>
+</body>
+</html>
