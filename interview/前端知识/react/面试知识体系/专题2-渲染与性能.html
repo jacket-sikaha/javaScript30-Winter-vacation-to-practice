@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>专题 2 · 渲染机制与性能</title>
+<style>
+  :root{
+    --bg:#f7f9fc; --panel:#ffffff; --line:#e2e8f0; --ink:#0f172a; --muted:#64748b;
+    --g:#16a34a; --y:#d97706; --r:#dc2626; --accent:#2563eb;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  header.bar{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:10px 16px; background:#fff; border-bottom:1px solid var(--line);
+    box-shadow:0 1px 3px rgba(15,23,42,.04); z-index:5;
+  }
+  .brand{display:flex; flex-direction:column; gap:2px; margin-right:auto; min-width:220px}
+  .brand h1{margin:0; font-size:15px; font-weight:700; letter-spacing:.2px}
+  .brand p{margin:0; font-size:11.5px; color:var(--muted)}
+  .tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  button{
+    font:inherit; font-size:12px; padding:6px 11px; border-radius:7px; cursor:pointer;
+    border:1px solid var(--line); background:#fff; color:#334155; transition:.15s;
+  }
+  button:hover{background:#f1f5f9; border-color:#cbd5e1}
+  button.on{background:#eff6ff; border-color:#93c5fd; color:#1d4ed8}
+  #q{
+    font:inherit; font-size:12px; padding:6px 10px; width:190px;
+    border:1px solid var(--line); border-radius:7px; outline:none; background:#fff;
+  }
+  #q:focus{border-color:#93c5fd; box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+  .legend{display:flex; gap:12px; align-items:center; font-size:11.5px; color:var(--muted)}
+  .legend i{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:-1px}
+  main{flex:1; display:flex; min-height:0; position:relative}
+  #stage{flex:1; overflow:auto; position:relative; background:
+     radial-gradient(circle at 1px 1px, #dbe4ef 1px, transparent 0) 0 0/22px 22px, var(--bg);}
+  #svg{display:block}
+  #svg text{user-select:none}
+  aside#panel{
+    width:342px; flex:0 0 342px; background:var(--panel); border-left:1px solid var(--line);
+    overflow-y:auto; padding:16px; font-size:12.5px; line-height:1.65;
+  }
+  aside#panel h2{font-size:13px; margin:0 0 10px; color:var(--muted); font-weight:600; letter-spacing:.4px}
+  .crumb{font-size:11.5px; color:var(--muted); margin-bottom:8px; line-height:1.9}
+  .crumb span{color:#94a3b8}
+  .title-row{display:flex; align-items:flex-start; gap:8px; margin-bottom:12px}
+  .title-row .name{font-size:15px; font-weight:700; line-height:1.45}
+  .badge{
+    display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:2px 8px;
+    border-radius:20px; white-space:nowrap; flex:0 0 auto; margin-top:2px;
+  }
+  .badge i{width:7px;height:7px;border-radius:50%;display:block}
+  .sec{margin-bottom:14px}
+  .sec .lab{font-size:11px; color:#94a3b8; letter-spacing:.5px; margin-bottom:4px; font-weight:600}
+  .sec .val{background:#f8fafc; border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:6px; padding:9px 11px; color:#1e293b}
+  .sec .key{background:#fffbeb; border:1px solid #fde68a; border-left:3px solid #f59e0b;
+    border-radius:6px; padding:9px 11px; color:#78350f}
+  .rel a{display:block; padding:6px 9px; border:1px solid var(--line); border-radius:6px;
+    margin-bottom:6px; color:#1d4ed8; text-decoration:none; font-size:12px; background:#fff; cursor:pointer}
+  .rel a:hover{background:#eff6ff}
+  .rel a em{color:#94a3b8; font-style:normal; font-size:11px}
+  .rel a.lg em{display:block; margin-top:3px}
+  .rel a .dot{display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; vertical-align:1px}
+  .stat{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px}
+  .stat div{flex:1; min-width:88px; border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:#fff}
+  .stat b{display:block; font-size:17px; line-height:1.2}
+  .stat small{color:var(--muted); font-size:10.5px}
+  .hint{color:var(--muted); font-size:11.5px; line-height:1.8}
+  .hint kbd{background:#f1f5f9; border:1px solid var(--line); border-radius:4px; padding:0 4px; font-size:10.5px}
+  #stage::-webkit-scrollbar,aside#panel::-webkit-scrollbar{width:10px;height:10px}
+  #stage::-webkit-scrollbar-thumb,aside#panel::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:6px;border:2px solid transparent;background-clip:content-box}
+  @media (max-width:900px){
+    aside#panel{position:absolute; right:0; top:0; bottom:0; box-shadow:-8px 0 24px rgba(15,23,42,.12); width:300px; flex-basis:300px}
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <div class="brand">
+    <h1>专题 2 · 渲染机制与性能</h1>
+    <p>分支 3 + 4：Render/Commit、Fiber、key、记忆化与诊断（全部展开）</p>
+  </div>
+  <div class="tools">
+    <input id="q" type="search" placeholder="搜索知识点 / 关键词…">
+    <button id="btn-all">全部展开</button>
+    <button id="btn-l2">折叠到二级</button>
+    <button id="btn-link" class="on">关联线</button>
+    <button id="btn-out">适应窗口</button>
+    <button id="btn-in">放大</button>
+    <button id="btn-reset">重置</button>
+  </div>
+  <div class="legend">
+    <span><i style="background:#16a34a"></i>已掌握</span>
+    <span><i style="background:#d97706"></i>待巩固</span>
+    <span><i style="background:#dc2626"></i>待学习</span>
+  </div>
+</header>
+<main>
+  <div id="stage"><svg id="svg"><g id="view"></g></svg></div>
+  <aside id="panel"></aside>
+</main>
+<script>
+const DATA = {"expandLevel":9,"branches":[{"id":"b3","t":"渲染机制与 Fiber","m":"g","n":"Render 可中断，Commit 不可中断","k":"本章主线：render 原因 → Diff → key → Fiber 调度","c":[{"id":"b3a","t":"何时重新渲染","m":"g","c":[{"id":"b3a1","t":"render 的五个原因","m":"g","n":"自身 state / 父 render / props / Context / 其他调度","k":"定位问题按这五条逐个排除"},{"id":"b3a2","t":"父 render 带动子 render","m":"g","n":"props 没变子组件也会参与 reconciliation","k":"只有 memo 才能跳过"}]},{"id":"b3b","t":"Render 与 Commit","m":"g","c":[{"id":"b3b1","t":"Render 阶段","m":"g","n":"纯计算，可中断、可丢弃、可重做","k":"不要在这里做副作用"},{"id":"b3b2","t":"Commit 阶段","m":"g","n":"同步应用 DOM 变更，不可中断","k":"commit 完成后才跑 Effect"},{"id":"b3b3","t":"Hooks 执行时序","m":"g","n":"Render → Commit → useLayoutEffect → Paint → useEffect","k":"高频面试图，务必能画出来"}]},{"id":"b3c","t":"Reconciliation","m":"g","c":[{"id":"b3c1","t":"Diff 策略","m":"g","n":"同层比较，跨层不复用","k":"O(n) 启发式，代价是跨层移动会重建"},{"id":"b3c2","t":"类型变化即重建","m":"g","n":"元素类型不同会卸载重建，state 丢失","k":"条件渲染切换不同组件时的坑"}]},{"id":"b3d","t":"key","m":"g","c":[{"id":"b3d1","t":"key 是身份标识","m":"g","n":"帮助 React 识别元素在两次 render 间的身份","k":"identity 优先，性能只是结果之一"},{"id":"b3d2","t":"正确 key 复用 DOM","m":"g","n":"key 相同则复用并移动，保留组件 state","k":"不是按位置匹配"},{"id":"b3d3","t":"index 作 key 的问题","m":"g","n":"插入/删除/排序后身份错位，state 串位","k":"必须用稳定 ID"}]},{"id":"b3e","t":"Fiber","m":"g","c":[{"id":"b3e1","t":"Fiber 是什么","m":"g","n":"把 render 工作拆成可中断的工作单元","k":"不是新的 Virtual DOM"},{"id":"b3e2","t":"可中断渲染","m":"g","n":"执行一部分 → 让出主线程 → 之后再继续","k":"解决长任务阻塞主线程"},{"id":"b3e3","t":"双缓冲树","m":"y","n":"current 与 workInProgress 交替切换","k":"未提交前整棵树可丢弃"}]},{"id":"b3f","t":"并发与优先级","m":"y","c":[{"id":"b3f1","t":"并发不是并行","m":"y","n":"同一时刻仍只有一个 JS 任务在执行","k":"并发是可中断的交错执行"},{"id":"b3f2","t":"优先级与抢占","m":"y","n":"高优先级更新可以打断低优先级工作","k":"transition 属于低优先级"}]},{"id":"b3g","t":"StrictMode","m":"y","c":[{"id":"b3g1","t":"开发期检查机制","m":"y","n":"额外 re-render 与额外 setup+cleanup 循环","k":"生产环境不会重复执行"},{"id":"b3g2","t":"设计目的","m":"y","n":"暴露 cleanup 不完整与副作用不纯的问题","k":"Effect 跑两次不是 bug"}]}]},{"id":"b4","t":"性能优化","m":"g","n":"先测量，再针对昂贵计算或不稳定引用优化","k":"本章主线：诊断 → 记忆化 → 引用稳定 → 结构优化","c":[{"id":"b4a","t":"记忆化三件套","m":"g","c":[{"id":"b4a1","t":"React.memo","m":"g","n":"props 未变时跳过父 render 引起的重渲染","k":"挡不住自身 state 与 Context 变化"},{"id":"b4a2","t":"useMemo","m":"g","n":"缓存昂贵计算结果","k":"先确认它真的昂贵"},{"id":"b4a3","t":"useCallback","m":"g","n":"稳定函数引用","k":"只在传给 memo 子组件时才有意义"},{"id":"b4a4","t":"Props 引用稳定性","m":"g","n":"依赖不可变更新与稳定依赖","k":"内联对象/函数是最常见破坏者"}]},{"id":"b4b","t":"Context 重渲染","m":"g","c":[{"id":"b4b1","t":"value 变化的影响","m":"g","n":"所有订阅该 Context 的组件都会重渲染","k":"React.memo 挡不住"},{"id":"b4b2","t":"四层优化手段","m":"g","n":"稳定 value / 拆分 Context / 缩小消费范围 / selector","k":"按这个顺序排查"}]},{"id":"b4c","t":"定位无效渲染","m":"y","c":[{"id":"b4c1","t":"React DevTools Profiler","m":"r","n":"录制后查看哪些组件 render 了以及原因","k":"先测量再优化，不要猜"},{"id":"b4c2","t":"区分两类瓶颈","m":"y","n":"计算耗时与 DOM 节点过多，优化手段不同","k":"前者用记忆化，后者用虚拟列表"}]},{"id":"b4d","t":"列表与加载","m":"y","c":[{"id":"b4d1","t":"虚拟列表","m":"r","n":"只渲染可视区域，用占位容器撑出总高度","k":"长列表的关键手段"},{"id":"b4d2","t":"代码分割与懒加载","m":"y","n":"React.lazy + Suspense 按路由或交互拆分","k":"减少首屏 JS 体积"}]},{"id":"b4e","t":"React Compiler","m":"r","c":[{"id":"b4e1","t":"定位","m":"r","n":"编译期自动插入记忆化，减少手写 memo","k":"不替代 Profiler 诊断","v":1},{"id":"b4e2","t":"适用条件","m":"r","n":"代码需符合 Rules of React 才可安全优化","k":"副作用不纯会失效","v":1}]}]}],"links":[{"a":"b3d1","b":"b3c1","l":"key ↔ Reconciliation","c":"#ea580c"},{"a":"b3e1","b":"b3b2","l":"Fiber ↔ Render/Commit","c":"#2563eb"}]};
+(function(){
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+  const H = {1:46, 2:36, 3:52};
+  const W = {1:206, 2:218, 3:286};
+  const X = [0, 232, 490, 796];
+  const VGAP = 11;
+  const MAST = {g:{t:"已掌握",c:"#16a34a"}, y:{t:"待巩固",c:"#d97706"}, r:{t:"待学习",c:"#dc2626"}};
+
+  const nodes = DATA.branches;
+  const byId = new Map();
+  const parentOf = new Map();
+  (function index(list, parent, depth){
+    list.forEach(n=>{
+      n.depth = depth; n.w = W[depth] || W[3]; n.x = X[depth] || X[3];
+      byId.set(n.id, n);
+      if (parent) parentOf.set(n.id, parent);
+      if (n.c) index(n.c, n, depth + 1);
+    });
+  })(nodes, null, 1);
+
+  const all = [...byId.values()];
+  const initialExpand = new Set(all.filter(n => n.depth < DATA.expandLevel).map(n => n.id));
+  let expanded = new Set(initialExpand);
+  let selected = null;
+  let showLinks = true;
+  let zoom = 1;
+  let highlight = new Set();
+
+  const view = document.getElementById("view");
+  const svg  = document.getElementById("svg");
+  const stage= document.getElementById("stage");
+  const panel= document.getElementById("panel");
+
+  /* ---------- 布局 ---------- */
+  function measure(n){
+    const kids = expanded.has(n.id) ? (n.c || []) : [];
+    if (!kids.length){ n.h = H[n.depth] + VGAP; n.kidsH = 0; return n.h; }
+    let sum = 0;
+    kids.forEach(k => { sum += measure(k); });
+    n.kidsH = sum;
+    n.h = Math.max(H[n.depth] + VGAP, sum);
+    return n.h;
+  }
+  function place(n, top, out){
+    n.y = top + n.h / 2;
+    out.push(n);
+    const kids = expanded.has(n.id) ? (n.c || []) : [];
+    if (kids.length){
+      let s = top + (n.h - n.kidsH) / 2;
+      kids.forEach(k => { place(k, s, out); s += k.h; });
+    }
+  }
+  function layout(){
+    let sum = 0;
+    nodes.forEach(n => { sum += measure(n); });
+    const out = [];
+    let top = 0;
+    nodes.forEach(n => { place(n, top, out); top += n.h; });
+    return { visible: out, totalH: sum };
+  }
+
+  /* ---------- 文本裁剪 ---------- */
+  function fit(str, px, fs){
+    let w = 0, o = "";
+    for (const ch of String(str)){
+      const cjk = /[\u3000-\u9fff\uff00-\uffef]/.test(ch);
+      const cw = cjk ? fs : fs * 0.55;
+      if (w + cw > px) return o + "…";
+      w += cw; o += ch;
+    }
+    return o;
+  }
+
+  /* ---------- 绘制 ---------- */
+  function esc(s){ return String(s).replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])); }
+
+  function render(){
+    const { visible, totalH } = layout();
+    const visSet = new Set(visible.map(n => n.id));
+    let maxX = 0;
+    visible.forEach(n => { if (n.x + n.w > maxX) maxX = n.x + n.w; });
+
+    let edgeSvg = "", crossSvg = "", nodeSvg = "", dotSvg = "";
+
+    // 主干连线
+    visible.forEach(n => {
+      const p = parentOf.get(n.id);
+      if (!p || !visSet.has(p.id)) return;
+      const x1 = p.x + p.w, y1 = p.y, x2 = n.x, y2 = n.y, mx = (x1 + x2) / 2;
+      edgeSvg += `<path d="M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}" fill="none" stroke="#cbd5e1" stroke-width="1.4"/>`;
+    });
+
+    // 关联线（跨分支易混淆关系）：虚线连接，端点小圆环，颜色=关系编号，标签在右侧面板
+    let extraRight = 0;
+    if (showLinks){
+      DATA.links.forEach(l => {
+        if (!visSet.has(l.a) || !visSet.has(l.b)) return;
+        const A = byId.get(l.a), B = byId.get(l.b);
+        if (!A || !B || A === B) return;
+        const sameCol = Math.abs(A.x - B.x) < 4;
+        let d, endX, p1, p2;
+        if (sameCol){
+          const bulge = Math.min(58, 28 + Math.abs(A.y - B.y) * 0.055);
+          const ax = A.x + A.w, ay = A.y, bx = B.x + B.w, by = B.y;
+          endX = Math.max(ax, bx) + bulge;
+          d = `M${ax},${ay} C${endX},${ay} ${endX},${by} ${bx},${by}`;
+          p1 = [ax, ay]; p2 = [bx, by];
+        } else {
+          const ax = A.x + A.w, ay = A.y, bx = B.x, by = B.y, mx = (ax + bx) / 2;
+          d = `M${ax},${ay} C${mx},${ay} ${mx},${by} ${bx},${by}`;
+          endX = Math.max(ax, bx);
+          p1 = [ax, ay]; p2 = [bx, by];
+        }
+        if (endX > extraRight) extraRight = endX;
+        crossSvg += `<path d="${d}" fill="none" stroke="${l.c}" stroke-width="1.7" stroke-dasharray="6 4" stroke-linecap="round" opacity=".85"/>`;
+        dotSvg += `<circle cx="${p1[0]}" cy="${p1[1]}" r="3.4" fill="#fff" stroke="${l.c}" stroke-width="2.1"/>`;
+        dotSvg += `<circle cx="${p2[0]}" cy="${p2[1]}" r="3.4" fill="#fff" stroke="${l.c}" stroke-width="2.1"/>`;
+      });
+    }
+    if (extraRight > maxX) maxX = extraRight;
+
+    // 节点
+    visible.forEach(n => {
+      const d = n.depth, x = n.x, w = n.w, h = H[d], y = n.y - h / 2;
+      const m = MAST[n.m] || MAST.g;
+      const isSel = selected === n.id;
+      const isHit = highlight.has(n.id);
+      const kids = n.c || [];
+      const open = expanded.has(n.id);
+      let fill = d === 1 ? "#ffffff" : (d === 2 ? "#f8fafc" : "#ffffff");
+      let stroke = isSel ? "#2563eb" : (isHit ? "#f59e0b" : "#dbe3ec");
+      let sw = isSel ? 2 : (isHit ? 2 : 1.1);
+      if (isHit && !isSel) fill = "#fffbeb";
+
+      nodeSvg += `<g data-id="${n.id}" style="cursor:pointer">`;
+      nodeSvg += `<title>${esc(n.t)}${n.n ? " — " + esc(n.n) : ""}</title>`;
+      nodeSvg += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="9" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+      if (d === 1) nodeSvg += `<rect x="${x}" y="${y}" width="5" height="${h}" rx="2.5" fill="${m.c}"/>`;
+      const dotX = x + (d === 1 ? 17 : 15);
+      nodeSvg += `<circle cx="${dotX}" cy="${n.y}" r="${d === 1 ? 5 : 4.2}" fill="${m.c}"/>`;
+
+      const tx = x + (d === 1 ? 30 : 27);
+      const avail = w - (tx - x) - (kids.length ? 30 : 12);
+
+      if (d === 3 && n.n){
+        nodeSvg += `<text x="${tx}" y="${n.y - 6}" font-size="13" font-weight="600" fill="#0f172a">${esc(fit(n.t, avail, 13))}</text>`;
+        nodeSvg += `<text x="${tx}" y="${n.y + 11}" font-size="11.2" fill="#64748b">${esc(fit(n.n, avail * 1.06, 11.2))}</text>`;
+      } else {
+        const fs = d === 1 ? 14 : 12.6;
+        nodeSvg += `<text x="${tx}" y="${n.y + 4.5}" font-size="${fs}" font-weight="${d === 1 ? 700 : 600}" fill="#0f172a">${esc(fit(n.t, avail, fs))}</text>`;
+      }
+      if (n.v) nodeSvg += `<circle cx="${x + w - 26}" cy="${y + 9}" r="2.6" fill="#f97316"/>`;
+
+      if (kids.length){
+        const cx = x + w - 14, cy = n.y;
+        nodeSvg += `<circle class="tg" data-id="${n.id}" cx="${cx}" cy="${cy}" r="8.5" fill="${open ? "#e2e8f0" : "#dbeafe"}" stroke="${open ? "#cbd5e1" : "#93c5fd"}" stroke-width="1"/>`;
+        nodeSvg += `<text class="tg" data-id="${n.id}" x="${cx}" y="${cy + 3.6}" text-anchor="middle" font-size="11" font-weight="700" fill="${open ? "#475569" : "#1d4ed8"}">${open ? "−" : "+"}</text>`;
+      }
+      nodeSvg += `</g>`;
+    });
+
+    const pad = 18;
+    view.setAttribute("transform", `translate(${pad},${pad}) scale(${zoom})`);
+    view.innerHTML = `<g>${crossSvg}${edgeSvg}${nodeSvg}${dotSvg}</g>`;
+    svg.setAttribute("width",  (maxX + pad * 2) * zoom);
+    svg.setAttribute("height", (totalH + pad * 2) * zoom);
+
+    renderPanel();
+  }
+
+  /* ---------- 右侧面板 ---------- */
+  function crumbOf(n){
+    const parts = [];
+    let cur = byId.get(n.id);
+    while (cur){ parts.unshift(cur.t); cur = parentOf.get(cur.id); }
+    return parts.map(esc).join(' <span>›</span> ');
+  }
+
+  function statsHTML(){
+    const c = { g: 0, y: 0, r: 0 };
+    all.forEach(n => { c[n.m] = (c[n.m] || 0) + 1; });
+    const t = all.length;
+    return `<div class="stat">
+      <div><b style="color:#16a34a">${c.g}</b><small>🟢 已掌握</small></div>
+      <div><b style="color:#d97706">${c.y}</b><small>🟡 待巩固</small></div>
+      <div><b style="color:#dc2626">${c.r}</b><small>🔴 待学习</small></div>
+    </div>
+    <div class="hint">共 ${t} 个知识点节点。</div>`;
+  }
+
+  function renderPanel(){
+    if (!selected){
+      const relList = DATA.links.map(l => {
+        const A = byId.get(l.a), B = byId.get(l.b);
+        if (!A || !B) return "";
+        return `<a class="lg" data-id="${l.a}" data-goto="${l.b}"><span class="dot" style="background:${l.c}"></span>${esc(l.l)}<em>${esc(A.t)} ↔ ${esc(B.t)}</em></a>`;
+      }).join("");
+      panel.innerHTML = `<h2>掌握程度</h2>${statsHTML()}
+        ${relList ? `<div class="sec rel" style="margin-top:14px"><div class="lab">易混淆关联线（图中虚线）</div>${relList}</div>` : ""}
+        <div class="sec"><div class="lab">怎么用这张图</div>
+        <div class="hint">
+          · 点击节点右侧 <kbd>+</kbd> / <kbd>−</kbd> 展开或折叠<br>
+          · 点击节点查看「一句话结论」与「易错点」<br>
+          · 虚线颜色与上面的关联关系一一对应<br>
+          · 搜索框定位知识点，命中后自动展开并标黄<br>
+          · 右上角黄色小点 = 该结论<strong>待验证</strong>
+        </div></div>`;
+      return;
+    }
+    const n = byId.get(selected);
+    if (!n){ selected = null; return renderPanel(); }
+    const m = MAST[n.m] || MAST.g;
+    const rel = DATA.links.filter(l => l.a === n.id || l.b === n.id)
+      .map(l => {
+        const other = byId.get(l.a === n.id ? l.b : l.a);
+        if (!other) return "";
+        return `<a data-id="${other.id}">${esc(l.l)} <em>→ ${esc(other.t)}</em></a>`;
+      }).join("");
+    const kids = (n.c || []).map(k =>
+      `<a data-id="${k.id}">${esc(k.t)} <em>${(MAST[k.m]||MAST.g).t}</em></a>`).join("");
+
+    panel.innerHTML = `
+      <div class="crumb">${crumbOf(n)}</div>
+      <div class="title-row">
+        <div class="name">${esc(n.t)}</div>
+        <span class="badge" style="background:${m.c}1a;color:${m.c}"><i style="background:${m.c}"></i>${m.t}</span>
+      </div>
+      ${n.n ? `<div class="sec"><div class="lab">一句话结论</div><div class="val">${esc(n.n)}</div></div>` : ""}
+      ${n.k ? `<div class="sec"><div class="lab">易错点 / 面试关键词</div><div class="key">${esc(n.k)}</div></div>` : ""}
+      ${n.v ? `<div class="sec"><div class="lab">备注</div><div class="key">⚠️ 待验证：该结论尚未在 React 官方文档中逐字确认，面试前建议复核。</div></div>` : ""}
+      ${rel ? `<div class="sec rel"><div class="lab">关联知识点</div>${rel}</div>` : ""}
+      ${kids ? `<div class="sec rel"><div class="lab">下级节点</div>${kids}</div>` : ""}
+    `;
+  }
+
+  /* ---------- 交互 ---------- */
+  function toggle(id){
+    if (expanded.has(id)) expanded.delete(id); else expanded.add(id);
+    if (selected === id) { /* keep */ }
+    render();
+  }
+  function select(id){
+    selected = id;
+    let cur = parentOf.get(id);
+    while (cur){ expanded.add(cur.id); cur = parentOf.get(cur.id); }
+    if (window.innerWidth <= 900) panel.scrollTop = 0;
+    render();
+  }
+
+  view.addEventListener("click", e => {
+    const tg = e.target.closest("[data-id]");
+    if (!tg) return;
+    const id = tg.getAttribute("data-id");
+    if (e.target.closest(".tg")) { toggle(id); return; }
+    select(id);
+  });
+  panel.addEventListener("click", e => {
+    const a = e.target.closest("[data-id]");
+    if (!a) return;
+    const goto = a.getAttribute("data-goto");
+    if (goto){
+      [goto].forEach(x => { let cur = parentOf.get(x); while (cur){ expanded.add(cur.id); cur = parentOf.get(cur.id); } });
+    }
+    select(a.getAttribute("data-id"));
+  });
+
+  document.getElementById("btn-all").addEventListener("click", () => {
+    all.forEach(n => expanded.add(n.id)); render();
+  });
+  document.getElementById("btn-l2").addEventListener("click", () => {
+    expanded = new Set(all.filter(n => n.depth < 2).map(n => n.id)); render();
+  });
+  document.getElementById("btn-link").addEventListener("click", e => {
+    showLinks = !showLinks;
+    e.currentTarget.classList.toggle("on", showLinks);
+    render();
+  });
+  document.getElementById("btn-out").addEventListener("click", () => fitToWindow());
+  document.getElementById("btn-in").addEventListener("click", () => {
+    zoom = Math.min(1.8, zoom + 0.15); render();
+  });
+  document.getElementById("btn-reset").addEventListener("click", () => {
+    expanded = new Set(initialExpand); selected = null; zoom = 1;
+    highlight = new Set(); document.getElementById("q").value = "";
+    render();
+  });
+
+  function fitToWindow(){
+    const { totalH } = layout();
+    let maxX = 0;
+    (function walk(list){ list.forEach(n => { if (n.x + n.w > maxX) maxX = n.x + n.w; if (expanded.has(n.id) && n.c) walk(n.c); }); })(nodes);
+    const availW = stage.clientWidth - 40, availH = stage.clientHeight - 40;
+    zoom = Math.max(0.25, Math.min(1.15, Math.min(availW / (maxX + 36), availH / (totalH + 36))));
+    render();
+  }
+
+  /* ---------- 搜索 ---------- */
+  let timer = null;
+  document.getElementById("q").addEventListener("input", e => {
+    clearTimeout(timer);
+    const q = e.target.value.trim().toLowerCase();
+    timer = setTimeout(() => {
+      if (!q){ highlight = new Set(); render(); return; }
+      const hit = new Set();
+      all.forEach(n => {
+        const hay = (n.t + " " + (n.n || "") + " " + (n.k || "")).toLowerCase();
+        if (hay.includes(q)) hit.add(n.id);
+      });
+      highlight = hit;
+      hit.forEach(id => { let cur = parentOf.get(id); while (cur){ expanded.add(cur.id); cur = parentOf.get(cur.id); } });
+      if (hit.size === 1) selected = [...hit][0];
+      render();
+    }, 160);
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape"){ selected = null; render(); }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
